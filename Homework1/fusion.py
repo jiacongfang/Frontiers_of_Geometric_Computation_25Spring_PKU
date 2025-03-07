@@ -2,6 +2,7 @@
 
 import numpy as np
 import trimesh
+from skimage import measure
 
 
 class TSDFVolume:
@@ -29,6 +30,8 @@ class TSDFVolume:
         self.vol_dim = np.round((vol_bnds[:, 1] - vol_bnds[:, 0]) / voxel_size).astype(
             int
         )
+
+        print("Volume Dimensions:", self.vol_dim)
 
         # Initialize voxel volume with 1.0 (truncation band) (NOT 0 !!)
         self.tsdf_vol = np.ones(
@@ -117,6 +120,14 @@ class TSDFVolume:
             + tsdf[valid_mask] * obs_weight
         ) / (self.weight_vol[valid_mask] + obs_weight)
         self.weight_vol[valid_mask] += obs_weight
+
+    def save_mesh(self, filename):
+        tsdf_vol_vis = np.copy(self.tsdf_vol).reshape(self.vol_dim)
+        verts, faces, norms, vals = measure.marching_cubes(tsdf_vol_vis, level=0)
+        verts = verts * self.voxel_size + self.vol_bnds[:, 0]
+
+        mesh = trimesh.Trimesh(verts, faces, vertex_normals=norms)
+        mesh.export(f"{filename}.ply")
 
 
 def cam_to_world(depth_im, cam_intr, cam_pose, export_pc=False):

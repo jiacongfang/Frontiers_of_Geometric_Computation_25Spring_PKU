@@ -4,8 +4,7 @@ import time
 import cv2
 import numpy as np
 from tqdm import tqdm
-from skimage import measure
-import trimesh
+import pickle
 
 import fusion
 
@@ -67,13 +66,13 @@ if __name__ == "__main__":
     fps = n_imgs / (time.time() - t0_elapse)
     print("Average FPS: {:.2f}".format(fps))
 
+    # save the TSDF volume to disk
+    with open("tsdf_vol.pkl", "wb") as f:
+        pickle.dump(tsdf_vol, f)
+
     #######################    Task 4    #######################
     # TODO: Extract mesh from voxel volume, save and visualize it
     ############################################################
     print("Extracting mesh...")
-    tsdf_vol_visual = tsdf_vol.tsdf_vol.reshape(tsdf_vol.vol_dim)
-    verts, faces, norms, values = measure.marching_cubes(tsdf_vol_visual, level=0)
-    verts = verts * tsdf_vol.voxel_size + tsdf_vol.vol_bnds[:, 0]
-
-    mesh = trimesh.Trimesh(verts, faces)
-    mesh.export("mesh.ply")
+    tsdf_vol.save_mesh("mesh")
+    print("Mesh saved to mesh.ply")
