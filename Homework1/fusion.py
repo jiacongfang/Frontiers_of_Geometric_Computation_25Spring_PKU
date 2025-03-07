@@ -48,7 +48,7 @@ class TSDFVolume:
         self.vox_coords = np.stack([xv, yv, zv], axis=-1).reshape(-1, 3)
         ############################################################
 
-    def integrate(self, depth_im, cam_intr, cam_pose, obs_weight=1.0, i=1):
+    def integrate(self, depth_im, cam_intr, cam_pose, obs_weight=1.0):
         """Integrate an RGB-D frame into the TSDF volume.
 
         Args:
@@ -91,21 +91,22 @@ class TSDFVolume:
         )
 
         # Step III: Sample depth values: (depth_im[H, W] - the depth of the voxel grid coordinates)
+        depth_val = np.zeros(self.vox_coords.shape[0])
+        depth_val[valid_pix] = depth_im[
+            pixel_coords[valid_pix, 1].astype(int),
+            pixel_coords[valid_pix, 0].astype(int),
+        ]
+
         depth_sample = np.zeros(self.vox_coords.shape[0])
         depth_sample[valid_pix] = (
-            depth_im[
-                pixel_coords[valid_pix, 1].astype(int),
-                pixel_coords[valid_pix, 0].astype(int),
-            ]
-            - cam_coords[valid_pix, 2]
+            depth_val[valid_pix]
+            - cam_coords[valid_pix, 2]  # depth of the voxel grid coordinates
         )
 
         #######################    Task 3    #######################
         # TODO: Compute TSDF for current frame
         ############################################################
-        valid_depth = depth_sample > -self.trunc_margin
-        valid_mask = valid_pix & valid_depth
-
+        valid_mask = (depth_val > 0) & (depth_sample >= -self.trunc_margin)
         tsdf = np.minimum(1.0, depth_sample / self.trunc_margin)
 
         #######################    Task 4    #######################

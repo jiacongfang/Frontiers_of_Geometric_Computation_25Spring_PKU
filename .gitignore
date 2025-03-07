@@ -1,6 +1,7 @@
 /*/data/
 /*/images/
 .DS_Store
-/*/debug.ipynb
+*.ipynb
 /*/__pycache__/
 /*/.vscode/
+*.png

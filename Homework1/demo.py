@@ -62,7 +62,7 @@ if __name__ == "__main__":
         cam_pose = np.loadtxt("data/frame-%06d.pose.txt" % (i))
 
         # Integrate observation into voxel volume
-        tsdf_vol.integrate(depth_im, cam_intr, cam_pose, obs_weight=1.0, i=i)
+        tsdf_vol.integrate(depth_im, cam_intr, cam_pose, obs_weight=1.0)
 
     fps = n_imgs / (time.time() - t0_elapse)
     print("Average FPS: {:.2f}".format(fps))
