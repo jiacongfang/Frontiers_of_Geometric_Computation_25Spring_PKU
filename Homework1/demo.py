@@ -36,7 +36,7 @@ if __name__ == "__main__":
             depth_im,
             cam_intr,
             cam_pose,
-            export_pc=(i == 0),  # export pointcloud only for the first frame
+            im_index=i,  # index of the image
         )
         # TODO: Update voxel volume bounds `vol_bnds`
         max_xyz = np.max(view_frust_pts, axis=0)
@@ -60,19 +60,32 @@ if __name__ == "__main__":
         depth_im[depth_im == 65.535] = 0
         cam_pose = np.loadtxt("data/frame-%06d.pose.txt" % (i))
 
+        # Read color image
+        color_image = cv2.cvtColor(
+            cv2.imread("data/frame-%06d.color.jpg" % (i)), cv2.COLOR_BGR2RGB
+        )
+
         # Integrate observation into voxel volume
-        tsdf_vol.integrate(depth_im, cam_intr, cam_pose, obs_weight=1.0)
+        tsdf_vol.integrate(
+            color_image, depth_im, cam_intr, cam_pose, obs_weight=1.0, frame_index=i
+        )
 
     fps = n_imgs / (time.time() - t0_elapse)
     print("Average FPS: {:.2f}".format(fps))
 
-    # save the TSDF volume to disk
+    # # save the TSDF volume to disk
     with open("tsdf_vol.pkl", "wb") as f:
         pickle.dump(tsdf_vol, f)
+
+    # Load the TSDF volume from disk
+    # with open("tsdf_vol.pkl", "rb") as f:
+    #     tsdf_vol = pickle.load(f)
 
     #######################    Task 4    #######################
     # TODO: Extract mesh from voxel volume, save and visualize it
     ############################################################
     print("Extracting mesh...")
-    tsdf_vol.save_mesh("mesh")
-    print("Mesh saved to mesh.ply")
+    tsdf_vol.save_mesh("mesh_color", vertex_colors=tsdf_vol.color_vol)
+    print("Mesh with color saved to mesh_color.ply")
+    tsdf_vol.save_mesh("mesh_gray", vertex_colors=None)
+    print("Mesh without color saved to mesh_gray.ply")

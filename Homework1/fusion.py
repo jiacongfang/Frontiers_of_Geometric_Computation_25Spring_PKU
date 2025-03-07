@@ -41,6 +41,11 @@ class TSDFVolume:
         self.weight_vol = np.zeros(
             self.vol_dim[0] * self.vol_dim[1] * self.vol_dim[2], dtype=np.float32
         )
+        self.color_vol = np.zeros(
+            (self.vol_dim[0] * self.vol_dim[1] * self.vol_dim[2], 3),
+            dtype=np.float32,
+        )
+
         # Set voxel grid coordinates
         xv, yv, zv = np.meshgrid(
             np.arange(self.vol_dim[0]),
@@ -51,14 +56,19 @@ class TSDFVolume:
         self.vox_coords = np.stack([xv, yv, zv], axis=-1).reshape(-1, 3)
         ############################################################
 
-    def integrate(self, depth_im, cam_intr, cam_pose, obs_weight=1.0):
+    def integrate(
+        self, color_im, depth_im, cam_intr, cam_pose, obs_weight=1.0, frame_index=0
+    ):
         """Integrate an RGB-D frame into the TSDF volume.
 
         Args:
+            color_im (ndarray): A color image of shape (H, W, 3). (RGB)
             depth_im (ndarray): A depth image of shape (H, W).
             cam_intr (ndarray): The camera intrinsics matrix of shape (3, 3).
             cam_pose (ndarray): The camera pose (i.e. extrinsics) of shape (4, 4).
             obs_weight (float): The weight to assign for the current observation.
+            frame_index (int): The index of the current frame.
+                Save the first frame as a mesh to check the result.
         """
 
         #######################    Task 2    #######################
@@ -110,6 +120,7 @@ class TSDFVolume:
         # TODO: Compute TSDF for current frame
         ############################################################
         valid_mask = (depth_val > 0) & (depth_sample >= -self.trunc_margin)
+        old_color_weight = self.weight_vol[valid_mask]
         tsdf = np.minimum(1.0, depth_sample / self.trunc_margin)
 
         #######################    Task 4    #######################
@@ -121,23 +132,60 @@ class TSDFVolume:
         ) / (self.weight_vol[valid_mask] + obs_weight)
         self.weight_vol[valid_mask] += obs_weight
 
-    def save_mesh(self, filename):
+        if frame_index == 0:
+            print("Save mesh for the first frame")
+            self.save_mesh("mesh_first_frame")
+
+        #######################  Extra Task   #######################
+        # TODO: Integrate color information
+        ############################################################
+        color_val = np.zeros((self.vox_coords.shape[0], 3))
+        color_val[valid_pix] = color_im[
+            pixel_coords[valid_pix, 1].astype(int),
+            pixel_coords[valid_pix, 0].astype(int),
+        ]
+
+        self.color_vol[valid_mask] = (
+            self.color_vol[valid_mask] * old_color_weight[:, None]
+            + color_val[valid_mask] * obs_weight
+        ) / self.weight_vol[valid_mask][:, None]
+
+        # clip color values to [0, 255]
+        self.color_vol = np.clip(self.color_vol, 0, 255)
+
+    def save_mesh(self, filename, vertex_colors=None):
         tsdf_vol_vis = np.copy(self.tsdf_vol).reshape(self.vol_dim)
         verts, faces, norms, vals = measure.marching_cubes(tsdf_vol_vis, level=0)
+        verts_index = np.round(verts).astype(int)  # use to index color_vol
         verts = verts * self.voxel_size + self.vol_bnds[:, 0]
 
-        mesh = trimesh.Trimesh(verts, faces, vertex_normals=norms)
+        if vertex_colors is not None:
+            # reshape vertex colors to (vol_dim[0], vol_dim[1], vol_dim[2], 3)
+            vertex_colors = vertex_colors.reshape(
+                self.vol_dim[0], self.vol_dim[1], self.vol_dim[2], 3
+            ).astype(np.uint8)
+            vertex_colors = vertex_colors[
+                verts_index[:, 0], verts_index[:, 1], verts_index[:, 2]
+            ]
+            print("Save mesh with vertex colors")
+            mesh = trimesh.Trimesh(
+                verts, faces, vertex_normals=norms, vertex_colors=vertex_colors
+            )
+        else:
+            print("Save mesh without vertex colors")
+            mesh = trimesh.Trimesh(verts, faces, vertex_normals=norms)
+
         mesh.export(f"{filename}.ply")
 
 
-def cam_to_world(depth_im, cam_intr, cam_pose, export_pc=False):
+def cam_to_world(depth_im, cam_intr, cam_pose, im_index):
     """Get 3D point cloud from depth image and camera pose
 
     Args:
         depth_im (ndarray): Depth image of shape (H, W).
         cam_intr (ndarray): The camera intrinsics matrix of shape (3, 3).
         cam_pose (ndarray): The camera pose (i.e. extrinsics) of shape (4, 4).
-        export_pc (bool): Whether to export pointcloud to a PLY file.
+        im_index (int): The index of the image, save each 100th image as a point cloud.
 
     Returns:
         world_pts (ndarray): The 3D point cloud of shape (N, 3).
@@ -164,8 +212,8 @@ def cam_to_world(depth_im, cam_intr, cam_pose, export_pc=False):
     )[:3, :].T
     ############################################################
 
-    if export_pc:
+    if im_index % 100 == 0:
         pointcloud = trimesh.PointCloud(world_pts)
-        pointcloud.export("pointcloud.ply")
+        pointcloud.export(f"pointcloud_{im_index}.ply")
 
     return world_pts
