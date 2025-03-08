@@ -1,0 +1,356 @@
+\documentclass[11pt]{article}           
+\usepackage[UTF8]{ctex}
+\usepackage[a4paper]{geometry}
+\geometry{left=2.0cm,right=2.0cm,top=2.5cm,bottom=2.25cm}
+
+\usepackage{xcolor}
+\usepackage{paralist}
+\usepackage{enumitem}
+\setenumerate[1]{itemsep=1pt,partopsep=0pt,parsep=0pt,topsep=0pt}
+\setitemize[1]{itemsep=0pt,partopsep=0pt,parsep=0pt,topsep=0pt}
+\usepackage{comment}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{sgame} % For Game Theory Matrices 
+% \usepackage{diagbox} % Conflict with sgame
+\usepackage{amsmath,amsfonts,graphicx,amssymb,bm,amsthm}
+%\usepackage{algorithm,algorithmicx}
+\usepackage{algorithm,algorithmicx}
+\usepackage[noend]{algpseudocode}
+\usepackage{fancyhdr}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{graphicx}
+\usetikzlibrary{arrows,automata}
+\usepackage[hidelinks]{hyperref}
+\usepackage{extarrows}
+\usepackage{totcount}
+\setlength{\headheight}{14pt}
+\setlength{\parindent}{0 in}
+\setlength{\parskip}{0.5 em}
+\usepackage{helvet}
+\usepackage{dsfont}
+% \usepackage{newtxmath}
+\usepackage[labelfont=bf]{caption}
+\renewcommand{\figurename}{Figure}
+\usepackage{lastpage}
+\usepackage{istgame}
+\usepackage{cleveref}
+\crefname{figure}{\textbf{Figure}}{Figures}
+\usepackage{tcolorbox}
+\usepackage{minted}
+
+\definecolor{LightGray}{gray}{0.9}
+\setminted{autogobble = true, baselinestretch = 0.9, beameroverlays = on, escapeinside=||}
+
+% \setlength\partopsep{0pt}
+% \setlength\topsep{0pt}
+\setlength\parskip{0pt}
+% \setlength\itemsep{0pt}
+% \setlength\parsep{0pt}
+% \setlength{\belowcaptionskip}{0pt}
+% \setlength{\abovecaptionskip}{0pt}
+% \setlength{\intextsep}{0pt}
+% \setlength{\textfloatsep}{0pt}
+% \setlength{\floatsep}{0pt}
+
+% \newdateformat{mydate}{\shortmonthname[\THEMONTH]. \THEDAY \THEYEAR}
+
+\RequirePackage{algorithm}
+
+\makeatletter
+\newenvironment{algo}
+  {% \begin{breakablealgorithm}
+    \begin{center}
+      \refstepcounter{algorithm}% New algorithm
+      \hrule height.8pt depth0pt \kern2pt% \@fs@pre for \@fs@ruled
+      \parskip 0pt
+      \renewcommand{\caption}[2][\relax]{% Make a new \caption
+        {\raggedright\textbf{\fname@algorithm~\thealgorithm} ##2\par}%
+        \ifx\relax##1\relax % #1 is \relax
+          \addcontentsline{loa}{algorithm}{\protect\numberline{\thealgorithm}##2}%
+        \else % #1 is not \relax
+          \addcontentsline{loa}{algorithm}{\protect\numberline{\thealgorithm}##1}%
+        \fi
+        \kern2pt\hrule\kern2pt
+     }
+  }
+  {% \end{breakablealgorithm}
+     \kern2pt\hrule\relax% \@fs@post for \@fs@ruled
+   \end{center}
+  }
+\makeatother
+
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem*{definition*}{Definition}
+
+\newenvironment{problem}[2][Problem]{\begin{trivlist}
+    \item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]\songti}{\hfill$\blacktriangleleft$\end{trivlist}}
+\newenvironment{answer}[1][Solution]{\begin{trivlist}
+    \item[\hskip \labelsep {\bfseries #1.}\hskip \labelsep]}{\hfill$\lhd$\end{trivlist}}
+
+\newcommand\1{\mathds{1}}
+% \newcommand\1{\mathbf{1}}
+\newcommand\R{\mathbb{R}}
+\newcommand\E{\mathbb{E}}
+\newcommand\N{\mathbb{N}}
+\newcommand\NN{\mathcal{N}}
+\newcommand\per{\mathrm{per}}
+\newcommand\PP{\mathbb{P}}
+\newcommand\dd{\mathrm{d}}
+\newcommand\ReLU{\mathrm{ReLU}}
+\newcommand{\Exp}{\mathrm{Exp}}
+\newcommand{\arrp}{\xrightarrow{P}}
+\newcommand{\arrd}{\xrightarrow{d}}
+\newcommand{\arras}{\xrightarrow{a.s.}}
+\newcommand{\arri}{\xrightarrow{n\rightarrow\infty}}
+\newcommand{\iid}{\overset{\text{i.i.d}}{\sim}}
+
+% New math operators
+\DeclareMathOperator{\sgn}{sgn}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\Corr}{Corr}
+\DeclareMathOperator{\MSE}{MSE}
+\DeclareMathOperator{\Bias}{Bias}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+
+
+\definecolor{lightgray}{gray}{0.75}
+
+
+\begin{document}
+
+\pagestyle{fancy}
+\lhead{\CJKfamily{zhkai} 北京大学}
+\chead{}
+\rhead{\CJKfamily{zhkai} 2025年春\ 几何计算前沿(王鹏帅)}
+\fancyfoot[R]{} 
+\fancyfoot[C]{\thepage\ /\ \pageref{LastPage} \\ \textcolor{lightgray}{最后编译时间: \today}}
+
+
+\begin{center}
+    {\LARGE \bf Homework 1: TSDF Fusion} 
+
+    {姓名:方嘉聪\ \  学号: 2200017849}            % Write down your name and ID here.
+\end{center}
+\section{文件结构与最终效果}
+\begin{itemize}
+    \item 在\texttt{./results/}文件夹下存储有导出的结果文件:
+    \begin{itemize}
+        \item \texttt{mesh\_gray.ply}和\texttt{mesh\_color.ply}分别为灰度和彩色的 fusion 结果. 
+        \item \texttt{mesh\_first\_frame.ply}为第一帧的fusion结果, 用于确认fusion是否正确.
+        \item \texttt{pointcloud\_*.ply}为每100帧存储的点云数据.
+    \end{itemize}
+    \item \texttt{demo.py} 与 \texttt{fusion.py} 为主要代码文件.
+\end{itemize}
+\vspace{1em}
+使用 MeshLab 可视化结果见 \cref{fig:mesh_gray} 和 \cref{fig:mesh_color}.
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{./images/mesh_gray.png}
+        \caption{灰度TSDF Fusion结果}
+        \label{fig:mesh_gray}
+    \end{minipage}
+    \hfill
+    \begin{minipage} [b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{./images/mesh_color.png}
+        \caption{彩色TSDF Fusion结果}
+        \label{fig:mesh_color}
+    \end{minipage}
+\end{figure}
+\section{Task 1: 从深度图生成点云}
+\subsection{坐标转换}
+利用 \texttt{numpy.meshgrid} 生成网格, 而后左乘相机内参矩阵的逆矩阵, 逆变换到相机坐标系下, 再左乘相机外参矩阵, 变换到世界坐标系下. 最后将点云数据存储为 \texttt{.ply} 文件. 具体代码简要如下:
+
+\begin{minted}[bgcolor=LightGray]{python}
+    def cam_to_world(depth_im, cam_intr, cam_pose, im_index):
+        H, W = depth_im.shape
+        # Create a grid of pixel coordinates
+        i, j = np.meshgrid(np.arange(H), np.arange(W), indexing="ij")
+        pixels = np.stack([j, i, np.ones_like(i)], axis=-1).reshape(-1, 3)
+        # Convert pixel coordinates to camera coordinates
+        cam_intr_inv = np.linalg.inv(cam_intr)
+        cam_cor = np.dot(cam_intr_inv, pixels.T).T
+        cam_cor *= depth_im.flatten()[:, None]
+        # Convert the camera coordinates to world coordinates
+        world_pts = np.dot(
+            cam_pose, np.hstack([cam_cor, np.ones((cam_cor.shape[0], 1))]).T
+        )[:3, :].T
+        if im_index % 100 == 0: # Save pointcloud every 100 frames
+            pointcloud = trimesh.PointCloud(world_pts)
+            pointcloud.export(f"pointcloud_{im_index}.ply")
+        
+        return world_pts
+\end{minted}
+\subsection{点云可视化}
+这里每隔100帧存储一次点云数据, 同时在MeshLab中打开, 可视化结果见\cref{fig:pointcloud}.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{./images/pointcloud.png}
+    \caption{每100帧存储的点云数据可视化(MeshLab)}
+    \label{fig:pointcloud}
+\end{figure}
+\subsection{体素场范围}
+在 \texttt{demo.py} 中每一次迭代都更新体素场的范围即可, 使用 \texttt{numpy} 进行批量化操作.
+\begin{minted}[bgcolor=LightGray]{python}
+    max_xyz, min_xyz = np.max(view_frust_pts, axis=0), np.min(view_frust_pts, axis=0)
+    vol_bnds[:, 0] = np.minimum(vol_bnds[:, 0], min_xyz)
+    vol_bnds[:, 1] = np.maximum(vol_bnds[:, 1], max_xyz)
+\end{minted}
+\section{Task 2: 从深度图采样}
+\subsection{体素场格点划分}
+在\texttt{TSDFVolume}类中, 通过 \mintinline{python}|np.round((vol_bnds[:, 1]-vol_bnds[:, 0])/voxel_size)|
+得到体素的维度. 而后使用 \texttt{np.meshgrid} 在体素场中生成网格, 用于后续的体素场更新. 
+\begin{minted}[bgcolor=LightGray]{python3}
+    xv, yv, zv = np.meshgrid(
+            np.arange(self.vol_dim[0]),
+            np.arange(self.vol_dim[1]),
+            np.arange(self.vol_dim[2]),
+            indexing="ij",
+        )
+    self.vox_coords = np.stack([xv, yv, zv], axis=-1).reshape(-1, 3)
+\end{minted}
+\subsection{采样点坐标转换}
+差不多是 \textbf{Task 1} 的逆过程, 依次经过: (需要进行矩阵的变换, 同样使用 \texttt{numpy} 进行批量化操作):
+\begin{itemize}
+    \item 体素格点 $\to$ 世界坐标: 体素格点乘以体素大小, 加上体素场的左下角坐标.
+    \item 世界坐标 $\to$ 相机坐标: 世界坐标左乘相机外参矩阵的逆矩阵.
+    \item 相机坐标 $\to$ 图像坐标: 相机坐标左乘相机内参矩阵. 
+\end{itemize}
+\begin{minted}[bgcolor=LightGray]{python}
+    # voxel grid coordinates => world coordinates
+    world_coords = self.vox_coords * self.voxel_size + self.vol_bnds[:, 0]  # (N, 3)
+    world_coords_hom = np.hstack([world_coords, np.ones((world_coords.shape[0], 1))])  
+
+    # world coordinates => camera coordinates (N, 3)
+    cam_coords = (np.dot(np.linalg.inv(cam_pose), world_coords_hom.T).T)[:, :3]  
+
+    # camera coordinates => pixel coordinates
+    pixel_coords = np.dot(cam_intr, cam_coords.T).T  # (N, 3)
+    pixel_coords[:, 0] /= pixel_coords[:, 2]
+    pixel_coords[:, 1] /= pixel_coords[:, 2]
+\end{minted}
+\subsection{深度采样}
+将 \texttt{pixel\_coords} 的坐标取整, 用于索引深度图, 从而得到深度值. 此外使用 mask 将超出深度图范围的点剔除. 
+\begin{minted}[bgcolor=LightGray]{python}
+    # Round to nearest pixel
+    pixel_coords = np.round(pixel_coords[:, :2]).astype(int)
+    valid_pix = (   # Mask out-of-bound coordinates
+        (pixel_coords[:, 0] >= 0) & (pixel_coords[:, 0] < W) \
+        & (pixel_coords[:, 1] >= 0) & (pixel_coords[:, 1] < H)
+    )
+    # Sample depth values
+    depth_val = np.zeros(self.vox_coords.shape[0])
+    depth_val[valid_pix] = depth_im[
+        pixel_coords[valid_pix, 1].astype(int),
+        pixel_coords[valid_pix, 0].astype(int),
+    ]
+\end{minted}
+注: 应该也可以使用双线性插值, 这里为了方便直接取整. 观察最终的效果可以接受.
+\section{Task 3: 计算单帧TSDF}
+根据每个采样点的深度值, 计算其与体素格点的距离, 并更新体素场的TSDF值, 同时进行截断操作.
+\begin{align*}
+    \text{TSDF} = \min \{ 1.0, (\texttt{depth\_val} - z)/\texttt{self.trunc\_margin}\}
+\end{align*}
+在这里定义了一个 mask 来排除一些异常值, 具体如下:
+\begin{minted}[bgcolor=LightGray]{python}
+    depth_sample = np.zeros(self.vox_coords.shape[0])
+    depth_sample[valid_pix] = (
+        depth_val[valid_pix]
+        - cam_coords[valid_pix, 2]  # depth of the voxel grid coordinates
+    )
+    # Mask to exclude points outside the truncation margin and invalid depth values
+    valid_mask = (depth_val > 0) & (depth_sample >= -self.trunc_margin) 
+    old_color_weight = self.weight_vol[valid_mask]
+    tsdf = np.minimum(1.0, depth_sample / self.trunc_margin)
+\end{minted}
+
+\section{Task 4: 融合多帧TSDF}
+\subsection{融合TSDF}
+加权平均更新体素场的TSDF值和权重值即可, 依旧使用在 \textbf{Task 3} 中定义的 mask 来排除一些异常值. 具体如下:
+\begin{minted}[bgcolor=LightGray]{python}
+    self.tsdf_vol[valid_mask] = (
+            self.tsdf_vol[valid_mask] * self.weight_vol[valid_mask]
+            + tsdf[valid_mask] * obs_weight
+    ) / (self.weight_vol[valid_mask] + obs_weight)
+    self.weight_vol[valid_mask] += obs_weight
+\end{minted}
+为了检验是否融合正确, 除了保存最终的 Fusion 结果(见 \cref{fig:mesh_gray}), 还保存了第一帧的 Fusion 结果, 见\cref{fig:mesh_first_frame}.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{./images/mesh_frist_frame.png}
+    \caption{第一帧的TSDF Fusion结果}
+    \label{fig:mesh_first_frame}
+\end{figure}
+
+运行的 Average FPS 为 2.11. 
+\subsection{调用 Marching Cubes 生成 Mesh}
+在 \texttt{TSDFVolume} 类中定义 \texttt{get\_mesh} 方法. 先 reshape 体素场的 TSDF 值, 再调用 \texttt{skimage.measure} 的 \texttt{marching\_cubes} 生成点, 面和法向量.
+注意这里得到的点为体素格点, 需要乘以体素大小, 加上体素场的左下角坐标, 转换到世界坐标系下. 而后使用 \texttt{trimesh} 生成 Mesh, 并保存为 \texttt{.ply} 文件.
+\begin{minted}[bgcolor=LightGray]{python}
+    def save_mesh(self, filename, vertex_colors=None):
+        tsdf_vol_vis = np.copy(self.tsdf_vol).reshape(self.vol_dim)
+        verts, faces, norms, vals = measure.marching_cubes(tsdf_vol_vis, level=0)
+        verts = verts * self.voxel_size + self.vol_bnds[:, 0]
+
+        mesh = trimesh.Trimesh(verts, faces, vertex_normals=norms)
+        mesh.export(f"{filename}.ply")
+\end{minted}
+\section{Extra Task: 带颜色的TSDF Fusion}
+我选择使用图片的颜色信息，实现带颜色的 TSDF Fusion. 类似对于深度的采样, 颜色有三个通道. 具体流程如下:
+\begin{itemize}
+    \item \textbf{初始化:} 在 \texttt{TSDFVolume} 类中增加 \texttt{color\_vol} 用以存储颜色信息, 初始化为 0. 
+    \begin{minted}[bgcolor=LightGray]{python3}
+        self.color_vol = np.zeros(
+            (self.vol_dim[0] * self.vol_dim[1] * self.vol_dim[2], 3),
+            dtype=np.float32,
+        )
+    \end{minted}
+    \item \textbf{颜色采样：} 在 \texttt{integrate} 方法中增加对于颜色信息的融合, 类似深度的采样, 使用 \texttt{pixel\_coords} 的坐标取整, 用于索引颜色图, 从而得到颜色值.
+    \begin{minted}[bgcolor=LightGray]{python3}
+        color_val = np.zeros((self.vox_coords.shape[0], 3))
+        color_val[valid_pix] = color_im[
+            pixel_coords[valid_pix, 1].astype(int),
+            pixel_coords[valid_pix, 0].astype(int),
+        ]
+    \end{minted}
+    \item \textbf{多帧颜色融合:} 使用加权平均更新体素场的颜色值, 实际实现中使用与和深度融合相同的 mask 及累计的权重值 \mintinline{python3}|old_color_weight = self.weight_vol[valid_mask]|
+    \begin{minted}[bgcolor=LightGray]{python3}
+        self.color_vol[valid_mask] = (
+            self.color_vol[valid_mask] * old_color_weight[:, None]
+            + color_val[valid_mask] * obs_weight
+        ) / self.weight_vol[valid_mask][:, None]
+        self.color_vol = np.clip(self.color_vol, 0, 255)
+    \end{minted}
+    \item \textbf{Mesh 生成:} 在 \texttt{get\_mesh} 方法中, 生成 Mesh 时, 传入颜色信息. 注意需要使用点索引得到对应的颜色信息.
+    \begin{minted}[bgcolor=LightGray]{python3}
+        verts_index = np.round(verts).astype(int)  # use to index color_vol
+        vertex_colors = vertex_colors.reshape(
+            self.vol_dim[0], self.vol_dim[1], self.vol_dim[2], 3
+        ).astype(np.uint8)
+        vertex_colors = vertex_colors[
+            verts_index[:, 0], verts_index[:, 1], verts_index[:, 2]
+        ]
+        mesh = trimesh.Trimesh(
+            verts, faces, vertex_normals=norms, vertex_colors=vertex_colors
+        )
+    \end{minted}
+\end{itemize}
+最终的效果见\cref{fig:mesh_color}.
+\end{document}

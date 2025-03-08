@@ -89,6 +89,7 @@ class TSDFVolume:
 
         # camera coordinates => pixel coordinates
         pixel_coords = np.dot(cam_intr, cam_coords.T).T  # (N, 3)
+        # assert (pixel_coords[:, 2] == cam_coords[:, 2]).all()  # z should be the same
         pixel_coords[:, 0] /= pixel_coords[:, 2]
         pixel_coords[:, 1] /= pixel_coords[:, 2]
         # round to nearest pixel
