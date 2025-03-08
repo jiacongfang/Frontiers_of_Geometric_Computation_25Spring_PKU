@@ -5,3 +5,11 @@
 /*/__pycache__/
 /*/.vscode/
 *.png
+*.pkl
+*.aux
+*.log
+*.out
+*.gz
+_minted-report/
+*_handin/
+*.zip
