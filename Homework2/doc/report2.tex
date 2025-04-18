@@ -149,14 +149,22 @@
 \end{center}
 \section{项目整体介绍}
 以 C++ 实现了 \underline{增量式网格简化算法} \cite{QEM} (Incremental Mesh Simplification Algorithm). 
+除了课上提及的解 $\rm A x = b$ 的方法, 还实现基于 \cite{Robust} 的基于SVD分解的求解方法. 切换Solver只需要在
+\texttt{model.hpp/compute\_edge\_cost()} 中修改调用的solver函数即可(限于时间没有进一步做接口).
+\begin{minted}[bgcolor=LightGray]{cpp}
+    Eigen::Vector3d x_hat = 0.5 * (p1 + p2);
+    Eigen::Vector3d x = robustSolve(A, -b, x_hat);     // Robust solve
+    // Eigen::Vector3d x = solveQuadraticCost(A, b, c, p1, p2);    // Naive solve
+\end{minted}
 \subsection{文件结构}
 项目结构如下：
 \begin{itemize}
     \item \texttt{src/}: 源代码, 包括 \texttt{main.cpp} 和 \texttt{model.hpp} 文件, 其中主要的算法实现在头文件中.
-    \item \texttt{result/}: mesh简化结果, 使用提供的 \texttt{simplification.obj} 作为输入, 分别生成了简化比例为 $\{0.9, 0.75, 0.5, 0.25, 0.1, 0.05\}$ 的结果, 以\texttt{simplified\_mesh\_xxx.obj}格式存储.
+    \item \texttt{result\_original\_solver/}: mesh简化结果, 使用提供的 \texttt{simplification.obj} 作为输入, 分别生成了简化比例为 $\{0.9, 0.75, 0.5, 0.25, 0.1, 0.05\}$ 的结果, 以\texttt{simplified\_mesh\_xxx.obj}格式存储. (使用原始解法)
+    \item \texttt{result\_robust\_solver/}: 同上, 使用基于SVD的 Robust solver.
     \item \texttt{CMakeLists.txt}: CMake配置文件, 用于编译项目.
     \item \texttt{doc/}: 报告\LaTeX\ 源文件及结果 MeshLab 可视化截图(\texttt{doc/visual\_imgs/}).
-    \item \texttt{MeshSimplifier}: 编译完成的可执行文件, 使用方法见下.
+    \item \texttt{MeshSimplifier}: 编译完成的可执行文件(使用 SVD 分解), 使用方法见下.
 \end{itemize}
 \subsection{编译和运行}
 \paragraph{第三方依赖库.} 
@@ -171,7 +179,7 @@ mkdir build
 cd build && cmake .. && ninja
 ninja 
 \end{minted}
-而后应该能够在 \texttt{build} 目录下看到可执行文件 \texttt{MeshSimplifier}\footnote{这里由于本地一些不可知的bugs, 我将\texttt{Eigen}路径在 \texttt{CMakeLists.txt} 中显示指定了, 如有问题需要修改一下.}.
+而后应该能够在 \texttt{build} 目录下看到可执行文件 \texttt{MeshSimplifier}. 注: 这里由于本地一些不可知的bugs, 我将\texttt{Eigen}路径在 \texttt{CMakeLists.txt} 中显示指定了, 如有问题需要修改一下.
 \paragraph{运行方法.} 使用如下命令运行, 要求 $\texttt{scalar} \in (0,1)$. 
 \mint{bash}|MeshSimplifier <dir_to_input_obj> <dir_to_output_obj> <scalar>|
 算法的效率没有进行特别优化, 请耐心等待几秒钟 :)
@@ -235,20 +243,6 @@ ninja
     Q_{v_i} = \sum_{F_j \in \text{neigh}(v_i)} Q_{F_j}
 \end{align*}
 具体算法如下: 
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.4\textwidth]{visual_imgs/original01.png} \\
-    \includegraphics[width=0.45\textwidth]{visual_imgs/simplified_mesh_0.90.png}
-    \includegraphics[width=0.45\textwidth]{visual_imgs/simplified_mesh_0.75.png}
-    \includegraphics[width=0.45\textwidth]{visual_imgs/simplified_mesh_0.50.png}
-    \includegraphics[width=0.45\textwidth]{visual_imgs/simplified_mesh_0.25.png}
-    \includegraphics[width=0.45\textwidth]{visual_imgs/simplified_mesh_0.10.png}
-    \includegraphics[width=0.45\textwidth]{visual_imgs/simplified_mesh_0.05.png}
-    \caption{最上方为原始网格, 其他为简化比例 $0.9, 0.75, 0.5, 0.25, 0.1, 0.05$ 的结果, 放大查看差异.}
-    \label{fig:visual}
-\end{figure}
-
 \begin{algo}
     \centering
     \caption{Incremental Mesh Simplification Algorithm}
@@ -281,7 +275,7 @@ ninja
     \item \texttt{init\_vertex\_quadrics():} 利用 \texttt{OpenMesh} 的 \texttt{Iterator} 遍历所有面, 
     计算每个面的 quadric matrix 后再计算每个顶点的 quadric matrix. 这里的向量我使用了 \texttt{Eigen} 库来表示. 
     \item \texttt{build\_priority\_queue():} 遍历所有边, 计算 cost 和最优合并点, 并将其放入 \texttt{Fibonacci Heap} 中.
-    最优合并点的计算见下: 
+    最优合并点的计算见下(Original Version):
     \begin{minted}[bgcolor=LightGray]{cpp}
     Eigen::Vector3d solveQuadraticCost(A, b, c, p1, p2){
         Eigen::Vector3d x;
@@ -296,6 +290,50 @@ ninja
         return x;
     }
     \end{minted}
+    而基于 SVD 的 Robust Solver 流程大致如下, 记 $\mathbf{Ax = b}$ 为待求解的方程,
+    \begin{itemize}
+        \item 计算 $\mathbf{A}$ 的 SVD 分解, 记 $\mathbf{A = U \Sigma V^T}$;
+        \item 计算伪逆的对角矩阵 $\Sigma^+$, 
+        \begin{align*}
+            \sigma_i^+ = \begin{cases}
+                \frac{1}{\sigma_i} & \text{if } \sigma_i > \epsilon \\
+                0 & \text{otherwise}
+            \end{cases}
+        \end{align*}
+        其中 $\sigma_1$ 为最大的奇异值, $\epsilon$ 为一个小的阈值(论文中设置为 $10^{-3}$);
+        \item 设cell中心为 $\hat{\mathbf{x}}$, 那么解为
+        \begin{align*}
+            \mathbf{x = \hat{x} + V \Sigma^+ U^T (b - A \hat{x})}
+        \end{align*}
+        注意到当 $\Sigma^+ = \Sigma^{-1}$ 时, 该方法与原始方法一致(即 $A$ 可逆).
+        具体代码如下:
+    \end{itemize}
+    \begin{minted}[bgcolor=LightGray]{cpp}
+    Eigen::Vector3d robustSolve(A, b, x_hat, epsilon = 1e-3) 
+    {   
+        ...
+        Eigen::Vector3d singular_values = svd.singularValues();
+        double sigma1 = singular_values(0);
+
+        // Calculate Sigma^+
+        Eigen::Vector3d sigma_plus(singular_values.size());
+        for (int i = 0; i < singular_values.size(); ++i)
+        {
+            if (singular_values(i) / sigma1 > epsilon)
+                sigma_plus(i) = 1.0 / singular_values(i);
+            else
+                sigma_plus(i) = 0.0;
+        }
+        // x = x_hat + V * Sigma^+ * U^T * (b - A * x_hat)
+        Eigen::Matrix3d Sigma_plus = sigma_plus.asDiagonal();
+        Eigen::Vector3d residual = b - A * x_hat;
+        Eigen::Vector3d x = x_hat + svd.matrixV() * Sigma_plus  \
+                        * svd.matrixU().transpose() * residual;
+
+        return x;
+    }
+    \end{minted}
+
     \item \mint{cpp}|simplify(size_t target_face_count)| 
     \underline{对外的主要接口}, 实现了 mesh 简化的具体流程. 由于 \texttt{OpenMesh} 中的 \texttt{collapse()} 
     只会标记要删除的对象, 而不会真正删除, 而调用 \texttt{garbage\_collection()} 时间成本较高且会
@@ -311,11 +349,35 @@ ninja
     \item \texttt{main.cpp} 中实现了命令行参数的解析, 读取输入文件, 调用 \texttt{MeshSimplifier} 类的接口,
     以及输出结果到文件. 这里使用了 \texttt{OpenMesh} 的 \texttt{IO} 模块,
 \end{itemize}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.4\textwidth]{visual_imgs/original01.png} \\
+    \includegraphics[width=0.45\textwidth]{visual_imgs/simplified_mesh_0.90.png}
+    \includegraphics[width=0.45\textwidth]{visual_imgs/simplified_mesh_0.75.png}
+    \includegraphics[width=0.45\textwidth]{visual_imgs/simplified_mesh_0.50.png}
+    \includegraphics[width=0.45\textwidth]{visual_imgs/simplified_mesh_0.25.png}
+    \includegraphics[width=0.45\textwidth]{visual_imgs/simplified_mesh_0.10.png}
+    \includegraphics[width=0.45\textwidth]{visual_imgs/simplified_mesh_0.05.png}
+    \caption{最上方为原始网格, 其他为简化比例 $0.9, 0.75, 0.5, 0.25, 0.1, 0.05$ 的结果(使用Original Solver).}
+    \label{fig:visual}
+\end{figure}
+
 \section{实现效果}
 在 MeshLab 中可视化的效果见 \textbf{Figure \ref{fig:visual}}. 可以看到随着简化比例的降低,
-网格的细节逐渐消失, 但整体的几何形状保持较好, 无翻转, 重叠等现象.
+网格的细节逐渐消失, 但整体的几何形状保持较好, 无翻转, 重叠等现象. 
 
+两种Solver的的对比见下, 实际上两者的效果差别不大, 但基于SVD的求解方法会稍快一些(但也不是很多), 都实现了就一起放在这里.
 
+\textcolor{blue}{吐槽: OpenMesh 好难用, 第一次写遭遇了不少bug.... 文档有种多年前的古风...}
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=0.75\textwidth]{visual_imgs/compare0.png}
+    \includegraphics[width=0.75\textwidth]{visual_imgs/compare1.png}
+    \caption{简化比例 $0.05$, 左列为基于SVD的求解方法, 右列为原始求解方法.}
+    \label{fig:compare}
+\end{figure}
+
+\newpage
 \bibliographystyle{plain} 
 \bibliography{ref} 
 

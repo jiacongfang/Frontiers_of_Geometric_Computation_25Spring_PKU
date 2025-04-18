@@ -6,4 +6,10 @@ Michael Garland and Paul~S. Heckbert.
 \newblock In {\em Proceedings of the 24th Annual Conference on Computer
   Graphics and Interactive Techniques}, 1997.
 
+\bibitem{Robust}
+Peter Lindstrom.
+\newblock Out-of-core simplification of large polygonal models.
+\newblock In {\em Proceedings of the 27th Annual Conference on Computer
+  Graphics and Interactive Techniques}, 2000.
+
 \end{thebibliography}
