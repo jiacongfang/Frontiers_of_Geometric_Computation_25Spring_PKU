@@ -298,8 +298,13 @@ private:
 
         Eigen::Vector3d p1 = to_eigen_vec3(mesh_.point(vh1));
         Eigen::Vector3d p2 = to_eigen_vec3(mesh_.point(vh2));
-        
-        Eigen::Vector3d x = solveQuadraticCost(A, b, c, p1, p2);
+
+        // Robust solve
+        Eigen::Vector3d x_hat = 0.5 * (p1 + p2);
+        Eigen::Vector3d x = robustSolve(A, -b, x_hat);
+
+        // Naive solve
+        // Eigen::Vector3d x = solveQuadraticCost(A, b, c, p1, p2);
 
         // Update the best position for the edge
         mesh_.property(best_pos_, eh) = x;
@@ -338,6 +343,32 @@ private:
             else
                 x = x_mid;
         }
+
+        return x;
+    }
+
+    Eigen::Vector3d robustSolve(const Eigen::Matrix3d &A, const Eigen::Vector3d &b, 
+                                const Eigen::Vector3d &x_hat, double epsilon = 1e-3)
+    {   
+        Eigen::JacobiSVD<Eigen::Matrix3d> svd(A, Eigen::ComputeFullU | Eigen::ComputeFullV);
+
+        Eigen::Vector3d singular_values = svd.singularValues();
+        double sigma1 = singular_values(0);
+
+        // Calculate Sigma^+: sigma_i^+ = 1 / sigma_i if sigma_i > epsilon, else 0
+        Eigen::Vector3d sigma_plus(singular_values.size());
+        for (int i = 0; i < singular_values.size(); ++i)
+        {
+            if (singular_values(i) / sigma1 > epsilon)
+                sigma_plus(i) = 1.0 / singular_values(i);
+            else
+                sigma_plus(i) = 0.0;
+        }
+
+        // x = x_hat + V * Sigma^+ * U^T * (b - A * x_hat)
+        Eigen::Matrix3d Sigma_plus = sigma_plus.asDiagonal();
+        Eigen::Vector3d residual = b - A * x_hat;
+        Eigen::Vector3d x = x_hat + svd.matrixV() * Sigma_plus * svd.matrixU().transpose() * residual;
 
         return x;
     }
