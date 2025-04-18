@@ -1,8 +1,8 @@
 #include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
 #include <OpenMesh/Core/IO/MeshIO.hh>
 #include <Eigen/Dense>
-#include <queue>
 #include <vector>
+#include <set>
 #include <stdexcept>
 #include <boost/heap/fibonacci_heap.hpp>
 
@@ -34,7 +34,6 @@ public:
         mesh_.request_edge_status();
         mesh_.request_face_status();
 
-        size_t collapse_count = 0;
 
         size_t current_face_count = mesh_.n_faces();
 
@@ -58,11 +57,11 @@ public:
             TriMesh::Point best_vertex = TriMesh::Point(best_pos[0], best_pos[1], best_pos[2]);
 
             // Before collapsing, store how many faces are affected for updating current_face_count
-            std::vector<TriMesh::FaceHandle> affected;
+            std::set<TriMesh::FaceHandle> affected;
             for (auto vf_it = mesh_.vf_iter(vh_from); vf_it.is_valid(); ++vf_it)
-                affected.push_back(*vf_it);
+                affected.insert(*vf_it);
             for (auto vf_it = mesh_.vf_iter(vh_to); vf_it.is_valid(); ++vf_it)
-                affected.push_back(*vf_it);
+                affected.insert(*vf_it);
             std::unordered_map<int, bool> was_deleted;
             for (auto fh : affected)
                 was_deleted[fh.idx()] = mesh_.status(fh).deleted();
@@ -86,16 +85,10 @@ public:
                     continue; // skip this edge
                 }
                 else
-                {
                     mesh_.collapse(heh);
-                    collapse_count++;
-                }
             }
             else
-            {
                 mesh_.collapse(heh);
-                collapse_count++;
-            }
 
             // Update current_face_count
             size_t removed = 0;
@@ -127,7 +120,7 @@ public:
                 mesh_.property(face_Q_, *vf_it) = Q;
             }
 
-            // Update the quadrics for the affected vertices
+            // Update the quadrics for the affected vertices and update the priority queue
             std::unordered_map<int, bool> was_modified;
             for (TriMesh::VertexFaceIter vf_it = mesh_.vf_iter(vh_to); vf_it.is_valid(); ++vf_it)
             {
