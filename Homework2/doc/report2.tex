@@ -1,0 +1,322 @@
+\documentclass[11pt]{article}           
+\usepackage[UTF8]{ctex}
+\usepackage[a4paper]{geometry}
+\geometry{left=2.0cm,right=2.0cm,top=2.5cm,bottom=2.25cm}
+
+\usepackage{xcolor}
+\usepackage{paralist}
+\usepackage{enumitem}
+\setenumerate[1]{itemsep=1pt,partopsep=0pt,parsep=0pt,topsep=0pt}
+\setitemize[1]{itemsep=0pt,partopsep=0pt,parsep=0pt,topsep=0pt}
+\usepackage{comment}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{sgame} % For Game Theory Matrices 
+% \usepackage{diagbox} % Conflict with sgame
+\usepackage{amsmath,amsfonts,graphicx,amssymb,bm,amsthm}
+%\usepackage{algorithm,algorithmicx}
+\usepackage{algorithm,algorithmicx}
+\usepackage[noend]{algpseudocode}
+\usepackage{fancyhdr}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{graphicx}
+\usetikzlibrary{arrows,automata}
+\usepackage[hidelinks]{hyperref}
+\usepackage{extarrows}
+\usepackage{totcount}
+\setlength{\headheight}{14pt}
+\setlength{\parindent}{0 in}
+\setlength{\parskip}{0.5 em}
+\usepackage{helvet}
+\usepackage{dsfont}
+% \usepackage{newtxmath}
+\usepackage[labelfont=bf]{caption}
+\renewcommand{\figurename}{Figure}
+\usepackage{lastpage}
+\usepackage{istgame}
+\usepackage{cleveref}
+\crefname{figure}{\textbf{Figure}}{Figures}
+\usepackage{tcolorbox}
+\usepackage{minted}
+
+
+\definecolor{LightGray}{gray}{0.9}
+\setminted{autogobble = true, baselinestretch = 0.9, beameroverlays = on, escapeinside=||}
+
+% \setlength\partopsep{0pt}
+% \setlength\topsep{0pt}
+\setlength\parskip{0pt}
+% \setlength\itemsep{0pt}
+% \setlength\parsep{0pt}
+% \setlength{\belowcaptionskip}{0pt}
+% \setlength{\abovecaptionskip}{0pt}
+% \setlength{\intextsep}{0pt}
+% \setlength{\textfloatsep}{0pt}
+% \setlength{\floatsep}{0pt}
+
+% \newdateformat{mydate}{\shortmonthname[\THEMONTH]. \THEDAY \THEYEAR}
+
+\RequirePackage{algorithm}
+
+\makeatletter
+\newenvironment{algo}
+  {% \begin{breakablealgorithm}
+    \begin{center}
+      \refstepcounter{algorithm}% New algorithm
+      \hrule height.8pt depth0pt \kern2pt% \@fs@pre for \@fs@ruled
+      \parskip 0pt
+      \renewcommand{\caption}[2][\relax]{% Make a new \caption
+        {\raggedright\textbf{\fname@algorithm~\thealgorithm} ##2\par}%
+        \ifx\relax##1\relax % #1 is \relax
+          \addcontentsline{loa}{algorithm}{\protect\numberline{\thealgorithm}##2}%
+        \else % #1 is not \relax
+          \addcontentsline{loa}{algorithm}{\protect\numberline{\thealgorithm}##1}%
+        \fi
+        \kern2pt\hrule\kern2pt
+     }
+  }
+  {% \end{breakablealgorithm}
+     \kern2pt\hrule\relax% \@fs@post for \@fs@ruled
+   \end{center}
+  }
+\makeatother
+
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem*{definition*}{Definition}
+
+\newenvironment{problem}[2][Problem]{\begin{trivlist}
+    \item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]\songti}{\hfill$\blacktriangleleft$\end{trivlist}}
+\newenvironment{answer}[1][Solution]{\begin{trivlist}
+    \item[\hskip \labelsep {\bfseries #1.}\hskip \labelsep]}{\hfill$\lhd$\end{trivlist}}
+
+\newcommand\1{\mathds{1}}
+% \newcommand\1{\mathbf{1}}
+\newcommand\R{\mathbb{R}}
+\newcommand\E{\mathbb{E}}
+\newcommand\N{\mathbb{N}}
+\newcommand\NN{\mathcal{N}}
+\newcommand\per{\mathrm{per}}
+\newcommand\PP{\mathbb{P}}
+\newcommand\dd{\mathrm{d}}
+\newcommand\ReLU{\mathrm{ReLU}}
+\newcommand{\Exp}{\mathrm{Exp}}
+\newcommand{\arrp}{\xrightarrow{P}}
+\newcommand{\arrd}{\xrightarrow{d}}
+\newcommand{\arras}{\xrightarrow{a.s.}}
+\newcommand{\arri}{\xrightarrow{n\rightarrow\infty}}
+\newcommand{\iid}{\overset{\text{i.i.d}}{\sim}}
+
+% New math operators
+\DeclareMathOperator{\sgn}{sgn}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\Corr}{Corr}
+\DeclareMathOperator{\MSE}{MSE}
+\DeclareMathOperator{\Bias}{Bias}
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+
+
+\definecolor{lightgray}{gray}{0.75}
+
+
+\begin{document}
+
+\pagestyle{fancy}
+\lhead{\CJKfamily{zhkai} 北京大学}
+\chead{}
+\rhead{\CJKfamily{zhkai} 2025年春\ 几何计算前沿(王鹏帅)}
+\fancyfoot[R]{} 
+\fancyfoot[C]{\thepage\ /\ \pageref{LastPage} \\ \textcolor{lightgray}{最后编译时间: \today}}
+
+
+\begin{center}
+    {\LARGE \bf Homework 2: Mesh Simplification} 
+
+    {\kaishu 姓名:方嘉聪\ \  学号: 2200017849}            % Write down your name and ID here.
+\end{center}
+\section{项目整体介绍}
+以 C++ 实现了 \underline{增量式网格简化算法} \cite{QEM} (Incremental Mesh Simplification Algorithm). 
+\subsection{文件结构}
+项目结构如下：
+\begin{itemize}
+    \item \texttt{src/}: 源代码, 包括 \texttt{main.cpp} 和 \texttt{model.hpp} 文件, 其中主要的算法实现在头文件中.
+    \item \texttt{result/}: mesh简化结果, 使用提供的 \texttt{simplification.obj} 作为输入, 分别生成了简化比例为 $\{0.9, 0.75, 0.5, 0.25, 0.1, 0.05\}$ 的结果, 以\texttt{simplified\_mesh\_xxx.obj}格式存储.
+    \item \texttt{CMakeLists.txt}: CMake配置文件, 用于编译项目.
+    \item \texttt{doc/}: 报告\LaTeX\ 源文件及结果 MeshLab 可视化截图(\texttt{doc/visual\_imgs/}).
+    \item \texttt{MeshSimplifier}: 编译完成的可执行文件, 使用方法见下.
+\end{itemize}
+\subsection{编译和运行}
+\paragraph{第三方依赖库.} 
+\begin{enumerate}
+    \item \texttt{OpenMesh}: 提供半边法数据结构和输入输出接口.
+    \item \texttt{Eigen3}: 线性代数库, 用于矩阵运算与方程求解.
+    \item \texttt{Boost}: 主要使用了 \texttt{boost/heap/fibonacci\_heap.hpp}, 基于此构建了一个 fibonacci 堆, 以实现较为高效的可修改元素的优先队列.
+\end{enumerate}
+\paragraph{编译流程.} 在安装好上述依赖库后, 进入项目根目录, 执行以下命令即可编译:
+\begin{minted}[bgcolor=LightGray]{bash}
+mkdir build
+cd build && cmake .. && ninja
+ninja 
+\end{minted}
+而后应该能够在 \texttt{build} 目录下看到可执行文件 \texttt{MeshSimplifier}\footnote{这里由于本地一些不可知的bugs, 我将\texttt{Eigen}路径在 \texttt{CMakeLists.txt} 中显示指定了, 如有问题需要修改一下.}.
+\paragraph{运行方法.} 使用如下命令运行, 要求 $\texttt{scalar} \in (0,1)$. 
+\mint{bash}|MeshSimplifier <dir_to_input_obj> <dir_to_output_obj> <scalar>|
+算法的效率没有进行特别优化, 请耐心等待几秒钟 :)
+
+\section{算法实现细节}
+\subsection{数据结构}
+主要数据结构如下(实现在 \texttt{model.hpp} 中): 
+\paragraph{MeshSimplifier Class} 维护了一个 \texttt{OpenMesh::TriMesh} 的网格对象, 
+使用 \texttt{OpenMesh} property manager 的方法在 vertex, edge, face 上维护了后续算法所需的属性, 主要包括:
+\begin{itemize}
+    \item \texttt{face\_normal}: 面的单位法向量;
+    \item \texttt{face\_Q}: 面的 quadric matrix;
+    \item \texttt{vertex\_Q}: 顶点的 quadric matrix;
+    \item \texttt{best\_pos}: 每条边 collapse 后, 顶点的最优位置;
+\end{itemize}
+\paragraph{EdgeCost} 结构体, 包含边及其对应的 cost, 重要用于下面的优先队列操作.
+\begin{minted}[bgcolor=LightGray]{cpp}
+    struct EdgeCost
+    {
+        double cost;
+        TriMesh::EdgeHandle eh;
+        bool operator<(const EdgeCost &other) const
+            return cost > other.cost; 
+    };
+\end{minted}
+\paragraph{Fibonacci Heap} 利用 \texttt{boost} 库实现了一个 \texttt{Fibonacci Heap} 与 哈希表, 
+以支持高效的优先队列操作, 主要用于维护当前所有边的 cost, 以及在每次 collapse 后更新相邻边的 cost. 具体实现如下:
+\begin{minted}[bgcolor=LightGray]{cpp}
+    using Heap = boost::heap::fibonacci_heap<EdgeCost>;
+    Heap priority_queue_;
+    std::unordered_map<TriMesh::EdgeHandle, Heap::handle_type> handles;
+    // Basic operations:
+    void push_element(EdgeCost ec);                 // Constant complexity.
+    bool remove_element(TriMesh::EdgeHandle eh);    // Logarithmic complexity.
+    EdgeCost pop_min();       // Logarithmic (amortized). Linear (worst case).
+\end{minted}
+
+\subsection{算法流程}   
+基本流程如下(参考课程slides, 原始论文\cite{QEM} 及该\href{https://blog.libreliu.info/qem-mesh-simplification/}{博客}).
+给定一个 mesh 输入 $M$, 对于每一个三角形 $F_i$, 记顶点为 $v_0, v_1, v_2$, 
+那么该三角形的单位法向量为:
+\begin{align*}
+    \vec{n} = \frac{(v_1 - v_0) \times (v_2 - v_0)}{||(v_1 - v_0) \times (v_2 - v_0)||}
+\end{align*}
+那么空间中任意一点 $v$ 到 $F_i$ 的距离平方为(这里省略细节推导)
+\begin{align*}
+    d^2(v, F_i) = h^T Q_i h \text{ where } Q_{4\times 4} = \begin{pmatrix}
+        \vec{n}^T \vec{n} & \vec{n}^T v_0 \\
+        v_0^T \vec{n} & v_0^T v_0
+    \end{pmatrix} \text{ and } h = \begin{pmatrix}
+        v \\
+        1
+    \end{pmatrix}
+\end{align*}
+那么对于任意一个三角形 $F_i$ 可以定义出一个二次型:
+\begin{align*}
+    Q_{F_i}(v) = h^T Q_i h 
+\end{align*}
+而对于一个顶点 $v_i$, 其 quadric matrix 定义为:
+\begin{align*}
+    Q_{v_i} = \sum_{F_j \in \text{neigh}(v_i)} Q_{F_j}
+\end{align*}
+具体算法如下: 
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.4\textwidth]{visual_imgs/original01.png} \\
+    \includegraphics[width=0.45\textwidth]{visual_imgs/simplified_mesh_0.90.png}
+    \includegraphics[width=0.45\textwidth]{visual_imgs/simplified_mesh_0.75.png}
+    \includegraphics[width=0.45\textwidth]{visual_imgs/simplified_mesh_0.50.png}
+    \includegraphics[width=0.45\textwidth]{visual_imgs/simplified_mesh_0.25.png}
+    \includegraphics[width=0.45\textwidth]{visual_imgs/simplified_mesh_0.10.png}
+    \includegraphics[width=0.45\textwidth]{visual_imgs/simplified_mesh_0.05.png}
+    \caption{最上方为原始网格, 其他为简化比例 $0.9, 0.75, 0.5, 0.25, 0.1, 0.05$ 的结果, 放大查看差异.}
+    \label{fig:visual}
+\end{figure}
+
+\begin{algo}
+    \centering
+    \caption{Incremental Mesh Simplification Algorithm}
+    \label{alg:mesh_simplification}
+    \begin{algorithmic}[1]
+        \Require{mesh and simplification scalar $s\in (0,1)$}
+        \Ensure{simplified mesh}
+        \State 对于每个顶点 $v_i$, 维护一个 quadric matrix $Q_{v_i}$.
+        \State 对于每个边 $(v_i, v_j)$, 维护一个 cost $Q(v') = (Q_{v_i} + Q_{v_j})(v')$. 其中 $v'$ 为最小化 QEM 的位置.
+        \begin{itemize}
+            \item $A = n^T n$ 可逆时直接求解.
+            \item $A = n^T n$ 不可逆时, 取中点和两个端点中 cost 最小的点作为 $v'$.
+        \end{itemize}
+        \State 将所有边 $(v_i, v_j)$ 及其对应的 cost 放入优先队列.
+        \While{ 目前面数 $>$ 输入mesh面数 $\times s$ 且 队列非空}
+            \State 从优先队列中取出 cost 最小的边 $(v_i, v_j)$.
+            \State collapse $(v_i, v_j)$ 到 $v'$.
+            \State 更新 $v'$ 的 quadric matrix $Q_{v'} = Q_{v_i} + Q_{v_j}$.
+            \State 更新 相邻元素的 normal, quadric matrix, cost.
+        \EndWhile
+        \State 将简化后的 mesh 输出到文件.
+    \end{algorithmic}
+\end{algo}
+
+\subsection{具体实现}
+在这一小节简要介绍一下上述算法的实现细节. 
+\begin{itemize}
+    \item 在类的构造函数中, 初始化了 \texttt{OpenMesh::TriMesh} 对象, 以及 quadric matrix, normal 等属性.
+    分别实现在 \texttt{compute\_face\_normals(), init\_vertex\_quadrics(), build\_priority\_queue()}.
+    \item \texttt{init\_vertex\_quadrics():} 利用 \texttt{OpenMesh} 的 \texttt{Iterator} 遍历所有面, 
+    计算每个面的 quadric matrix 后再计算每个顶点的 quadric matrix. 这里的向量我使用了 \texttt{Eigen} 库来表示. 
+    \item \texttt{build\_priority\_queue():} 遍历所有边, 计算 cost 和最优合并点, 并将其放入 \texttt{Fibonacci Heap} 中.
+    最优合并点的计算见下: 
+    \begin{minted}[bgcolor=LightGray]{cpp}
+    Eigen::Vector3d solveQuadraticCost(A, b, c, p1, p2){
+        Eigen::Vector3d x;
+        Eigen::ColPivHouseholderQR<Eigen::Matrix3d> qr(A);
+        if (qr.isInvertible()) // A 可逆
+            x = qr.solve(-b);
+        else
+        {
+            Eigen::Vector3d x_mid = (p1 + p2) * 0.5;
+            // ... 选择 p1, p2 中 cost 最小的点作为 x
+        }
+        return x;
+    }
+    \end{minted}
+    \item \mint{cpp}|simplify(size_t target_face_count)| 
+    \underline{对外的主要接口}, 实现了 mesh 简化的具体流程. 由于 \texttt{OpenMesh} 中的 \texttt{collapse()} 
+    只会标记要删除的对象, 而不会真正删除, 而调用 \texttt{garbage\_collection()} 时间成本较高且会
+    重排顶点编号. 因此我维护了一个 \texttt{current\_face\_count} 变量, 每次减去被删除的面数.
+
+    \texttt{collapse()} 分别遍历两种半边收缩的情况, 选择能够通过 \texttt{mesh.is\_collapse\_ok()} 
+    的一种, 先将 \texttt{vh\_to} 坐标设置为最优合并点, 然后调用 \texttt{collapse()} 函数. 
+
+    每次成功收缩后, 依次更新受影响的面的属性, 受影响的边的属性, 更新优先队列(插入新边, 删除旧边).
+    具体代码比较的冗长, 更具体的实现可以参考源代码. 在循环结束后, 调用垃圾清理函数, 
+    删除被收缩的元素.
+
+    \item \texttt{main.cpp} 中实现了命令行参数的解析, 读取输入文件, 调用 \texttt{MeshSimplifier} 类的接口,
+    以及输出结果到文件. 这里使用了 \texttt{OpenMesh} 的 \texttt{IO} 模块,
+\end{itemize}
+\section{实现效果}
+在 MeshLab 中可视化的效果见 \textbf{Figure \ref{fig:visual}}. 可以看到随着简化比例的降低,
+网格的细节逐渐消失, 但整体的几何形状保持较好, 无翻转, 重叠等现象.
+
+
+\bibliographystyle{plain} 
+\bibliography{ref} 
+
+\end{document}

@@ -26,8 +26,8 @@ find_package(Eigen3 3.4 REQUIRED
 )
 
 # 打印调试信息
-message(STATUS "Eigen3 include dir: ${EIGEN3_INCLUDE_DIR}")
-message(STATUS "OpenMesh include dir: ${OPENMESH_INCLUDE_DIR}")
+# message(STATUS "Eigen3 include dir: ${EIGEN3_INCLUDE_DIR}")
+# message(STATUS "OpenMesh include dir: ${OPENMESH_INCLUDE_DIR}")
 
 set(targetName MeshSimplifier)
 

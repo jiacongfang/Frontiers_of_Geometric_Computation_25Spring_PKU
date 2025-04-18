@@ -3,7 +3,8 @@
 .DS_Store
 *.ipynb
 /*/__pycache__/
-/*/.vscode/
+*/.vscode/
+.vscode/
 *.png
 *.pkl
 *.aux
@@ -12,4 +13,8 @@
 *.gz
 _minted-report/
 *_handin/
+/Homework2/doc/_minted-report2/
 *.zip
+/*/build/
+.idea/
+OpenMesh/
