@@ -292,7 +292,7 @@ ninja
     \end{minted}
     而基于 SVD 的 Robust Solver 流程大致如下, 记 $\mathbf{Ax = b}$ 为待求解的方程,
     \begin{itemize}
-        \item 计算 $\mathbf{A}$ 的 SVD 分解, 记 $\mathbf{A = U \Sigma V^T}$;
+        \item 计算 $\mathbf{A}$ 的 SVD 分解, 记 $\mathbf{A = U} \Sigma \mathbf{V^T}$;
         \item 计算伪逆的对角矩阵 $\Sigma^+$, 
         \begin{align*}
             \sigma_i^+ = \begin{cases}
@@ -303,7 +303,7 @@ ninja
         其中 $\sigma_1$ 为最大的奇异值, $\epsilon$ 为一个小的阈值(论文中设置为 $10^{-3}$);
         \item 设cell中心为 $\hat{\mathbf{x}}$, 那么解为
         \begin{align*}
-            \mathbf{x = \hat{x} + V \Sigma^+ U^T (b - A \hat{x})}
+            \mathbf{x = \hat{x} + V} \Sigma^+ \mathbf{U^T (b - A \hat{x})}
         \end{align*}
         注意到当 $\Sigma^+ = \Sigma^{-1}$ 时, 该方法与原始方法一致(即 $A$ 可逆).
         具体代码如下:
