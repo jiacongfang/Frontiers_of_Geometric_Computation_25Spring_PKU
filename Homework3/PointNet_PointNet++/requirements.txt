@@ -1,0 +1,11 @@
+torch
+numpy
+thsolver
+toml
+torchvision
+tqdm
+trimesh
+protobuf
+tensorboardX
+provider
+protobuf

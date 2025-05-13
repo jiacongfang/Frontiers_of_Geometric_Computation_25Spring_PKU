@@ -10,7 +10,7 @@ SOLVER:
   run: test
 
   logdir: logs/m40/d5
-  ckpt: logs/m40/d5_05121714/best_model.pth
+  ckpt: logs/m40/d5_05121714/best_model.pth # path to the checkpoint
 
 DATA:
   test:
