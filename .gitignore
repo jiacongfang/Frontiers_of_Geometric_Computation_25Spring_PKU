@@ -18,3 +18,4 @@ _minted-report/
 /*/build/
 .idea/
 OpenMesh/
+ocnn-pytorch/
