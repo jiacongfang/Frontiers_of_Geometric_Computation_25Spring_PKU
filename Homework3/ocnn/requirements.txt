@@ -1,0 +1,14 @@
+torch
+numpy
+tqdm
+yacs
+scipy
+plyfile
+tensorboard
+scikit-image
+trimesh
+wget
+protobuf>=3.1.0,<=3.20.0
+thsolver==1.1.5
+ocnn
+# cyminiball

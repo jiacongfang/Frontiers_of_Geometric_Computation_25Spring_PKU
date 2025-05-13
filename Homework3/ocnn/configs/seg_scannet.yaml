@@ -1,0 +1,82 @@
+# --------------------------------------------------------
+# Octree-based Sparse Convolutional Neural Networks
+# Copyright (c) 2022 Peng-Shuai Wang <wangps@hotmail.com>
+# Licensed under The MIT License [see LICENSE for details]
+# Written by Peng-Shuai Wang
+# --------------------------------------------------------
+
+SOLVER:
+  gpu: 0,
+  run: train
+  best_val: max:mIoU_part
+
+  logdir: logs/scannet/D10_2cm
+  max_epoch: 600
+  test_every_epoch: 10
+  log_per_iter: 20
+  weight_decay: 0.0001
+
+  # learning rate
+  lr: 0.05
+  lr_type: poly
+  milestones: (360,480)  # has no effect for `poly`
+
+DATA:
+  train:
+    name: scannet
+
+    # octree building
+    depth: 10
+    full_depth: 2
+
+    # data augmentations
+    distort: True
+    angle: (0, 0, 180)
+    scale: 0.2
+    jitter: 0.1
+    uniform: True
+
+    # data loading
+    location: data/scannet.ply/train
+    filelist: data/scannet.ply/scannetv2_train.txt
+    batch_size: 4
+    shuffle: True
+    # num_workers: 0
+
+  test:
+    name: scannet
+
+    # octree building
+    depth: 10
+    full_depth: 2
+
+    # data augmentations
+    distort: False  # no data augmentation
+    angle: (0, 0, 180)
+    scale: 0.1
+    jitter: 0.1
+    uniform: True
+
+    # data loading
+    location: data/scannet.ply/train
+    filelist: data/scannet.ply/scannetv2_val.txt
+    batch_size: 1
+    shuffle: False
+    # num_workers: 0
+
+MODEL:
+  name: unet
+  # N -> Normal (3 channels);
+  # D -> Displacement (1 channel);
+  # F -> Color (3 channels)
+  # P -> Position (3 channels)
+  feature: NDF
+  channel: 7
+  nout: 21
+  nempty: True
+  interp: nearest
+  sync_bn: False
+
+LOSS:
+  mask: 0
+  num_class: 21

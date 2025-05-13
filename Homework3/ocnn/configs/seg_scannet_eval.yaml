@@ -1,0 +1,45 @@
+# --------------------------------------------------------
+# Octree-based Sparse Convolutional Neural Networks
+# Copyright (c) 2022 Peng-Shuai Wang <wangps@hotmail.com>
+# Licensed under The MIT License [see LICENSE for details]
+# Written by Peng-Shuai Wang
+# --------------------------------------------------------
+
+SOLVER:
+  gpu: 0,
+  run: evaluate
+  eval_epoch: 72
+  eval_step: -1
+  logdir: logs/scannet/D10_2cm_eval
+  ckpt: logs/scannet/D10_2cm/checkpoints/00600.model.pth
+
+DATA:
+  test:
+    name: scannet
+
+    # octree building
+    depth: 10
+    full_depth: 2
+
+    # data augmentations
+    distort: True
+    angle: (0, 0, 180)
+    scale: 0.1
+    jitter: 0.1
+    uniform: True
+
+    location: data/scannet/test
+    filelist: data/scannet/scannetv2_test.txt
+    batch_size: 1
+    shuffle: False
+    # num_workers: 0
+
+MODEL:
+  name: unet
+  feature: NDF # N -> Normal (3 channels);
+               # D -> Displacement (1 channel);
+               # F -> Color (3 channels)
+  channel: 7
+  nout: 21
+  nempty: True
+  interp: nearest

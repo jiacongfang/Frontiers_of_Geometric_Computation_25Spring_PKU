@@ -1,0 +1,110 @@
+BASE:
+- ''
+DATA:
+  test:
+    adaptive: false
+    angle:
+    - 0
+    - 0
+    - 5
+    batch_size: 32
+    depth: 5
+    disable: false
+    distort: false
+    filelist: data/ModelNet40/filelist/m40_test.txt
+    flip: &id001
+    - 0.0
+    - 0.0
+    - 0.0
+    full_depth: 2
+    in_memory: false
+    interval:
+    - 1
+    - 1
+    - 1
+    jitter: 0.125
+    location: data/ModelNet40/ModelNet40.ply.normalize
+    name: ''
+    num_workers: 2
+    orient_normal: xyz
+    pin_memory: true
+    scale: 0.25
+    shuffle: false
+    take: -1
+    uniform: false
+  train:
+    adaptive: false
+    angle:
+    - 0
+    - 0
+    - 5
+    batch_size: 32
+    depth: 5
+    disable: false
+    distort: true
+    filelist: data/ModelNet40/filelist/m40_train.txt
+    flip: *id001
+    full_depth: 2
+    in_memory: false
+    interval:
+    - 1
+    - 1
+    - 1
+    jitter: 0.125
+    location: data/ModelNet40/ModelNet40.ply.normalize
+    name: ''
+    num_workers: 4
+    orient_normal: xyz
+    pin_memory: true
+    scale: 0.25
+    shuffle: true
+    take: -1
+    uniform: false
+LOSS:
+  label_smoothing: 0.0
+  name: ''
+  num_class: 40
+MODEL:
+  channel: 4
+  feature: ND
+  find_unused_parameters: false
+  name: lenet
+  nempty: false
+  nout: 40
+  stages: 3
+  sync_bn: false
+  use_checkpoint: false
+SOLVER:
+  alias: time
+  best_val: max:accu
+  ckpt: logs/m40/d5_05121714/best_model.pth
+  ckpt_num: 20
+  clip_grad: -1.0
+  empty_cache: true
+  eval_epoch: 1
+  eval_step: -1
+  gamma: 0.1
+  gpu:
+  - 0
+  log_per_iter: 50
+  logdir: logs/m40/d5_05130301
+  lr: 0.1
+  lr_min: 0.0001
+  lr_power: 0.9
+  lr_type: step
+  max_epoch: 300
+  milestones:
+  - 120
+  - 180
+  - 240
+  port: 10001
+  progress_bar: true
+  rand_seed: -1
+  run: test
+  test_every_epoch: 5
+  type: sgd
+  warmup_epoch: 20
+  warmup_init: 0.001
+  weight_decay: 0.0005
+SYS:
+  cmds: classification.py --config configs/cls_m40_test.yaml SOLVER.alias time
