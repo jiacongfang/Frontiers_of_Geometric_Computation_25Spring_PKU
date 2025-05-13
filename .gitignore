@@ -11,6 +11,7 @@
 *.log
 *.out
 *.gz
+*.bbl
 _minted-report/
 *_handin/
 /Homework2/doc/_minted-report2/
