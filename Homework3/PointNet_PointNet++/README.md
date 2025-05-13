@@ -30,6 +30,8 @@ python test_classification.py --log_dir pointnet_cls --model_name pointnet_cls
 
 ```bash
 # Train and Test PointNet++
-python train_classification.py --model pointnet2_cls_ssg --log_dir pointnet2_cls_ssg
+python train_classification.py --model pointnet2_cls_ssg --log_dir pointnet2_cls_ssg    # without normal features
 python test_classification.py --log_dir pointnet2_cls_ssg --model_name pointnet2_cls_ssg
 ```
+
+Actually, you can refer to the original [Implementation](https://github.com/yanx27/Pointnet_Pointnet2_pytorch) for more training and testing options. 
