@@ -14,7 +14,6 @@
 *.bbl
 _minted-report/
 *_handin/
-/Homework2/doc/_minted-report2/
 *.zip
 /*/build/
 .idea/
@@ -22,3 +21,5 @@ OpenMesh/
 ocnn-pytorch/
 /Homework3/ocnn/logs/m40/d5_05121714/checkpoints/
 Homework4/checkpoint_fourier/
+Homework4/checkpoint_naive/
+**/_minted-report*/
