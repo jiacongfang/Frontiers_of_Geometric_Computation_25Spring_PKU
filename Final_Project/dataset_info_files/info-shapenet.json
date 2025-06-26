@@ -1,0 +1,22 @@
+{
+    "lst_dir": "../dataset_info_files/ShapeNet_filelists",
+    "cats": {
+        "rifle": "04090263",
+        "speaker": "03691459",
+        "chair": "03001627",
+        "sofa": "04256520",
+        "table": "04379243"
+    },
+    "all_cats": [
+        "chair",
+        "speaker",
+        "rifle",
+        "sofa",
+        "table"
+    ],
+    "raw_dirs_v1": {
+        "mesh_dir": "../data/ShapeNet/ShapeNetCore.v1/",
+        "norm_mesh_dir": "../data/ShapeNet/norm_mesh_dir_v1/",
+        "sdf_dir": "../data/ShapeNet/SDF_v1"
+    }
+}
