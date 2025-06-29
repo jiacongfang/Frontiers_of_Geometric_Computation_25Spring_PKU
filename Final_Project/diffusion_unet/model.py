@@ -5,7 +5,6 @@ import numpy as np
 from .buildingblocks import (
     DoubleConv,
     ResNetBlock,
-    ResNetBlockSE,
     create_decoders,
     create_encoders,
 )
@@ -263,12 +262,6 @@ def get_model(model_config):
         model_config["name"], modules=["pytorch3dunet.unet3d.model"]
     )
     return model_class(**model_config)
-
-
-def is_model_2d(model):
-    if isinstance(model, nn.DataParallel):
-        model = model.module
-    return isinstance(model, UNet2D)
 
 
 class SinusoidalPositionEmbeddings(nn.Module):

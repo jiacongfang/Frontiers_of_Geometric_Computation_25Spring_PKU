@@ -19,7 +19,7 @@ Maybe some missing dependencies, please install them as needed if some errors oc
 
 ## Data Preparation
 
-> The dataset preparation is based on the [SDFusion repository](https://github.com/yccyenchicheng/SDFusion), and the preprocessing scripts are copied from there.
+> **The dataset preparation is based on the [SDFusion repository](https://github.com/yccyenchicheng/SDFusion), and the preprocessing scripts are copied from there,too.**
 
 * ShapeNet
     1. Download the ShapeNetV1 dataset from the [official website](https://www.shapenet.org/). Then, extract the downloaded file and put the extracted folder in the `./data` folder. Here we assume the extracted folder is at `./data/ShapeNet/ShapeNetCore.v1`.
