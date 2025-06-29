@@ -1,13 +1,16 @@
 import torch
 import os
-
 import argparse
 from tqdm import tqdm
 import trimesh
 from skimage import measure
+import datetime
 
 from vqvae.network import VQVAE
-from diffusion_unet.model import DiffusionUNet3D
+from diffusion_unet.model_attention import (
+    DiffusionUNet3DWithAttention,
+    DiffusionModelWithAttention,
+)
 from diffusers import DDPMScheduler
 
 
@@ -45,9 +48,11 @@ def load_models(vqvae_path, unet_checkpoint_path, device):
 
     unet_checkpoint = torch.load(unet_checkpoint_path, map_location=device)
 
-    if "model_config" in unet_checkpoint:
-        model_config = unet_checkpoint["model_config"]
-    else:  # medium model config as default
+    # if 'model_config' in unet_checkpoint:
+    #     model_config = unet_checkpoint['model_config']
+    # else:       # medium model config as default
+
+    if args.model_size == "medium":
         model_config = {
             "in_channels": 3,
             "out_channels": 3,
@@ -55,8 +60,20 @@ def load_models(vqvae_path, unet_checkpoint_path, device):
             "f_maps": 128,
             "num_levels": 3,
         }
+    elif args.model_size == "large":
+        model_config = {
+            "in_channels": 3,
+            "out_channels": 3,
+            "time_emb_dim": 512,
+            "f_maps": 192,
+            "num_levels": 3,
+        }
+    else:
+        raise ValueError(
+            f"Unsupported model size: {args.model_size}. Choose from ['medium', 'large']."
+        )
 
-    unet = DiffusionUNet3D(**model_config)
+    unet = DiffusionUNet3DWithAttention(**model_config)
     unet.load_state_dict(unet_checkpoint["unet_state_dict"])
     unet = unet.to(device)
     unet.eval()
@@ -67,11 +84,12 @@ def load_models(vqvae_path, unet_checkpoint_path, device):
 
 
 def sample_with_ddpm_scheduler(
-    unet,
-    vqvae,
+    diffusion_model,
+    text,
     latents,
     num_inference_steps=1000,
     num_train_timesteps=5000,
+    guidance_scale=7.5,
     device="cuda",
 ):
     scheduler = DDPMScheduler(
@@ -87,13 +105,59 @@ def sample_with_ddpm_scheduler(
 
     scheduler.set_timesteps(num_inference_steps)
 
-    print(f"[*] Starting sampling with {num_inference_steps} steps...")
+    print(
+        f"[*] Starting sampling with {num_inference_steps} steps and guidance scale {guidance_scale}..."
+    )
     print(f"[*] Noise shape: {latents.shape}")
+    print(f"[*] Text prompt: {text}")
+
+    # Prepare text embeddings for CFG
+    if isinstance(text, str):
+        text = [text]
+
+    combined_text = text + [""] * len(text)
+    combined_embeddings = diffusion_model.encode_text(
+        combined_text, drop_conditioning=False
+    )
+
+    batch_size = len(text)
+    conditional_embeddings = combined_embeddings[:batch_size]
+    unconditional_embeddings = combined_embeddings[batch_size:]
+
+    latent_batch_size = latents.shape[0]
+    conditional_embeddings = conditional_embeddings.repeat(
+        latent_batch_size // batch_size, 1, 1
+    )
+    unconditional_embeddings = unconditional_embeddings.repeat(
+        latent_batch_size // batch_size, 1, 1
+    )
 
     with torch.no_grad():
         for i, t in enumerate(tqdm(scheduler.timesteps, desc="Denoising")):
             timestep = t.expand(latents.shape[0]).to(device)
-            noise_pred = unet(latents, timestep)
+
+            if guidance_scale != 1.0:
+                latents_combined = torch.cat([latents, latents], dim=0)
+                timestep_combined = torch.cat([timestep, timestep], dim=0)
+                embeddings_combined = torch.cat(
+                    [unconditional_embeddings, conditional_embeddings], dim=0
+                )
+
+                noise_combined = diffusion_model.unet(
+                    latents_combined, timestep_combined, embeddings_combined
+                )
+                unconditional_noise, conditional_noise = noise_combined.chunk(2, dim=0)
+
+                # Apply classifier-free guidance
+                noise_pred = unconditional_noise + guidance_scale * (
+                    conditional_noise - unconditional_noise
+                )
+            else:
+                # No guidance, just use conditional
+                noise_pred = diffusion_model.unet(
+                    latents, timestep, conditional_embeddings
+                )
+
             latents = scheduler.step(noise_pred, t, latents).prev_sample
 
     print("[*] Sampling completed!")
@@ -102,7 +166,7 @@ def sample_with_ddpm_scheduler(
     )
 
     print("[*] Decoding latents to SDF...")
-    decoded_sdf = vqvae.decode_no_quant(latents)
+    decoded_sdf = diffusion_model.vqvae.decode_no_quant(latents)
     print(
         f"[*] Decoded SDF shape: {decoded_sdf.shape}, range: [{decoded_sdf.min():.3f}, {decoded_sdf.max():.3f}]"
     )
@@ -115,7 +179,7 @@ def sdf_to_mesh(sdf_volume, threshold=0.0, spacing=(0.1, 0.1, 0.1)):
     print(f"[*] SDF range: [{sdf_volume.min():.3f}, {sdf_volume.max():.3f}]")
 
     try:
-        verts, faces, normals, values = measure.marching_cubes(
+        verts, faces, normals, _ = measure.marching_cubes(
             sdf_volume, level=threshold, spacing=spacing
         )
 
@@ -145,7 +209,18 @@ def test_diffusion_pipeline(args):
 
     os.makedirs(args.output_dir, exist_ok=True)
 
+    current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    output_dir = os.path.join(args.output_dir, current_time)
+    os.makedirs(output_dir, exist_ok=True)
+
+    # save the text prompt to output directory
+    with open(os.path.join(output_dir, "text_prompt.txt"), "w") as f:
+        f.write(args.text)
     vqvae, unet = load_models(args.vqvae_path, args.unet_checkpoint_path, device)
+    model = DiffusionModelWithAttention(
+        vqvae=vqvae, unet=unet, timesteps=args.num_train_timesteps, device=device
+    )
+    del vqvae, unet
 
     print(f"\n[*] Generating {args.num_samples} samples...")
 
@@ -165,11 +240,12 @@ def test_diffusion_pipeline(args):
         latents = initial_latents.clone()
 
         generated_sdf, _ = sample_with_ddpm_scheduler(
-            unet,
-            vqvae,
-            latents,
+            diffusion_model=model,
+            text=args.text,
+            latents=latents,
             num_inference_steps=infer_step,
             num_train_timesteps=args.num_train_timesteps,
+            guidance_scale=args.guidance_scale,
             device=device,
         )
 
@@ -178,14 +254,14 @@ def test_diffusion_pipeline(args):
                 f"\n[*] Processing sample {i + 1}/{args.num_samples} with {infer_step} inference steps..."
             )
 
-            sdf_sample = generated_sdf[i, 0].numpy()  # Shape: (64, 64, 64)
+            sdf_sample = generated_sdf[i, 0].cpu().numpy()  # Shape: (64, 64, 64)
 
             print(f"[*] Generating mesh for sample {i}")
             vertices, faces, _ = sdf_to_mesh(sdf_sample, threshold=args.sdf_threshold)
 
             if vertices is not None and len(vertices) > 0:
                 obj_path = os.path.join(
-                    args.output_dir, f"generated_shape_{i}_step_{infer_step}.obj"
+                    output_dir, f"generated_shape_{i}_step_{infer_step}.obj"
                 )
                 success = save_mesh_as_obj(vertices, faces, obj_path)
 
@@ -210,7 +286,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--unet_checkpoint_path",
         type=str,
-        default="logs_unet/20250625-223823/diffusion_unet_epoch_100.pth",
+        default="logs_unet_attention_all/20250628-011947/diffusion_unet_epoch_30.pth",
         help="Path to the trained UNet checkpoint",
     )
     parser.add_argument(
@@ -220,27 +296,47 @@ if __name__ == "__main__":
         help="Directory to save generated results",
     )
     parser.add_argument(
-        "--num_samples", type=int, default=10, help="Number of samples to generate"
+        "--num_samples", type=int, default=15, help="Number of samples to generate"
     )
     parser.add_argument(
         "--max_inference_steps",
         type=int,
-        default=5000,
+        default=3000,
         help="Number of denoising steps",
     )
     parser.add_argument(
         "--sdf_threshold",
         type=float,
-        default=0.001,
+        default=0.005,
         help="SDF threshold for marching cubes",
     )
     parser.add_argument(
         "--num_train_timesteps",
         type=int,
-        default=5000,
+        default=3000,
         help="Number of training timesteps for the scheduler",
     )
     parser.add_argument("--num_inference_step", type=int, default=0)
+
+    parser.add_argument(
+        "--text",
+        type=str,
+        help="Text prompt for generating shapes",
+        default="An L shape table.",
+    )
+    parser.add_argument(
+        "--guidance_scale",
+        type=float,
+        default=1.5,
+        help="guidance_scale of classifier-free guidance generation",
+    )
+    parser.add_argument(
+        "--model_size",
+        type=str,
+        default="medium",
+        choices=["medium", "large"],
+        help="Size of the UNet model to create",
+    )
 
     args = parser.parse_args()
 

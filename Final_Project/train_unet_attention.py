@@ -6,12 +6,15 @@ from tensorboardX import SummaryWriter
 import argparse
 
 from torch.utils.data import DataLoader
-from datasets import ShapeNetDataset
+from datasets import TextShapeNetDataset
 from vqvae.network import VQVAE
-from diffusion_unet.model import DiffusionUNet3D, DiffusionModel
+from diffusion_unet.model_attention import (
+    DiffusionModelWithAttention,
+    DiffusionUNet3DWithAttention,
+)
 
 
-def create_unet_model(model_size="medium", device="cuda"):
+def create_unet_model(model_size="large", device="cuda"):
     configs = {
         "small": {
             "time_emb_dim": 128,
@@ -37,7 +40,13 @@ def create_unet_model(model_size="medium", device="cuda"):
 
     config = configs.get(model_size, configs["medium"])
 
-    unet = DiffusionUNet3D(in_channels=3, out_channels=3, **config).to(device)
+    unet = DiffusionUNet3DWithAttention(
+        in_channels=3,
+        out_channels=3,
+        attention_resolutions=[2, 4],
+        use_cross_attention=True,
+        **config,
+    ).to(device)
 
     return unet, configs.get(model_size, configs["medium"])
 
@@ -89,7 +98,7 @@ def train_unet(args):
     print(f"VQVAE model loaded from {args.vqvae_path}")
 
     # load dataset (single category)
-    dataset = ShapeNetDataset(
+    dataset = TextShapeNetDataset(
         info_file=dataset_config["info_file"],
         dataroot=dataset_config["dataroot"],
         phase=dataset_config["phase"],
@@ -126,7 +135,7 @@ def train_unet(args):
     print("UNet model created successfully!")
 
     # create diffusion model
-    diffusion_model = DiffusionModel(
+    diffusion_model = DiffusionModelWithAttention(
         vqvae=vqvae, unet=unet, timesteps=args.train_timesteps, device=device
     )
 
@@ -149,12 +158,15 @@ def train_unet(args):
     for epoch in range(num_epochs):
         pbar = tqdm(dataloader, desc=f"Epoch {epoch + 1}/{num_epochs}")
 
-        for batch_idx, data in enumerate(pbar):
+        for _, data in enumerate(pbar):
             x = data["sdf"].to(device)
+            text = data["text"]
+
+            # import ipdb; ipdb.set_trace()
 
             optimizer.zero_grad()
 
-            loss = diffusion_model.training_loss(x)
+            loss = diffusion_model.training_loss(x, text)
             loss.backward()
             optimizer.step()
 
@@ -184,9 +196,9 @@ def train_unet(args):
     print("Saving final model...")
     final_checkpoint = {
         "unet_state_dict": unet.state_dict(),
-        "optimizer_state_dict": optimizer.state_dict(),
+        # 'optimizer_state_dict': optimizer.state_dict(),
     }
-    final_checkpoint["model_config"] = model_config
+    # final_checkpoint['model_config'] = model_config
 
     torch.save(final_checkpoint, os.path.join(log_dir, "diffusion_unet_final.pth"))
     print("Training completed! Final model saved.")
@@ -209,29 +221,27 @@ if __name__ == "__main__":
         help="Path to UNet checkpoint for resuming training",
     )
     parser.add_argument(
-        "--batch_size", type=int, default=12, help="Batch size for training"
+        "--batch_size", type=int, default=40, help="Batch size for training"
     )
     parser.add_argument(
-        "--num_epochs", type=int, default=100, help="Number of epochs for training"
+        "--num_epochs", type=int, default=40, help="Number of epochs for training"
     )
     parser.add_argument(
         "--learning_rate", type=float, default=1e-4, help="Learning rate"
     )
     parser.add_argument(
-        "--save_interval", type=int, default=20, help="Save checkpoint every N epochs"
+        "--save_interval", type=int, default=10, help="Save checkpoint every N epochs"
     )
     parser.add_argument(
-        "--log_dir", type=str, default="logs_unet", help="Directory for saving logs"
-    )
-    parser.add_argument(
-        "--num_workers", type=int, default=4, help="Number of data loading workers"
-    )
-    parser.add_argument(
-        "--category",
+        "--log_dir",
         type=str,
-        default="chair",
-        help="Category of shapes to train on (options: chair, speaker, rifle, sofa, table)",
+        default="logs_unet_attention",
+        help="Directory for saving logs",
     )
+    parser.add_argument(
+        "--num_workers", type=int, default=8, help="Number of data loading workers"
+    )
+    parser.add_argument("--category", type=str, default="all")
     parser.add_argument(
         "--train_timesteps",
         type=int,

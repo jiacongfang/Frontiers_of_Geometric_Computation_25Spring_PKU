@@ -25,15 +25,20 @@ def save_checkpoint(state, is_best, checkpoint_dir):
     if not os.path.exists(checkpoint_dir):
         os.mkdir(checkpoint_dir)
 
-    last_file_path = os.path.join(checkpoint_dir, 'last_checkpoint.pytorch')
+    last_file_path = os.path.join(checkpoint_dir, "last_checkpoint.pytorch")
     torch.save(state, last_file_path)
     if is_best:
-        best_file_path = os.path.join(checkpoint_dir, 'best_checkpoint.pytorch')
+        best_file_path = os.path.join(checkpoint_dir, "best_checkpoint.pytorch")
         shutil.copyfile(last_file_path, best_file_path)
 
 
-def load_checkpoint(checkpoint_path, model, optimizer=None,
-                    model_key='model_state_dict', optimizer_key='optimizer_state_dict'):
+def load_checkpoint(
+    checkpoint_path,
+    model,
+    optimizer=None,
+    model_key="model_state_dict",
+    optimizer_key="optimizer_state_dict",
+):
     """Loads model and training parameters from a given checkpoint_path
     If optimizer is provided, loads optimizer's state_dict of as well.
 
@@ -49,7 +54,7 @@ def load_checkpoint(checkpoint_path, model, optimizer=None,
     if not os.path.exists(checkpoint_path):
         raise IOError(f"Checkpoint '{checkpoint_path}' does not exist")
 
-    state = torch.load(checkpoint_path, map_location='cpu')
+    state = torch.load(checkpoint_path, map_location="cpu")
     model.load_state_dict(state[model_key])
 
     if optimizer is not None:
@@ -60,10 +65,10 @@ def load_checkpoint(checkpoint_path, model, optimizer=None,
 
 def save_network_output(output_path, output, logger=None):
     if logger is not None:
-        logger.info(f'Saving network output to: {output_path}...')
+        logger.info(f"Saving network output to: {output_path}...")
     output = output.detach().cpu()[0]
-    with h5py.File(output_path, 'w') as f:
-        f.create_dataset('predictions', data=output, compression='gzip')
+    with h5py.File(output_path, "w") as f:
+        f.create_dataset("predictions", data=output, compression="gzip")
 
 
 loggers = {}
@@ -79,7 +84,8 @@ def get_logger(name, level=logging.INFO):
         # Logging to console
         stream_handler = logging.StreamHandler(sys.stdout)
         formatter = logging.Formatter(
-            '%(asctime)s [%(threadName)s] %(levelname)s %(name)s - %(message)s')
+            "%(asctime)s [%(threadName)s] %(levelname)s %(name)s - %(message)s"
+        )
         stream_handler.setFormatter(formatter)
         logger.addHandler(stream_handler)
 
@@ -93,8 +99,7 @@ def get_number_of_learnable_parameters(model):
 
 
 class RunningAverage:
-    """Computes and stores the average
-    """
+    """Computes and stores the average"""
 
     def __init__(self):
         self.count = 0
@@ -108,7 +113,7 @@ class RunningAverage:
 
 
 def number_of_features_per_level(init_channel_number, num_levels):
-    return [init_channel_number * 2 ** k for k in range(num_levels)]
+    return [init_channel_number * 2**k for k in range(num_levels)]
 
 
 class TensorboardFormatter:
@@ -138,13 +143,17 @@ class TensorboardFormatter:
         def _check_img(tag_img):
             tag, img = tag_img
 
-            assert img.ndim == 2 or img.ndim == 3, 'Only 2D (HW) and 3D (CHW) images are accepted for display'
+            assert img.ndim == 2 or img.ndim == 3, (
+                "Only 2D (HW) and 3D (CHW) images are accepted for display"
+            )
 
             if img.ndim == 2:
                 img = np.expand_dims(img, axis=0)
             else:
                 C = img.shape[0]
-                assert C == 1 or C == 3, 'Only (1, H, W) or (3, H, W) images are supported'
+                assert C == 1 or C == 3, (
+                    "Only (1, H, W) or (3, H, W) images are supported"
+                )
 
             return tag, img
 
@@ -153,10 +162,10 @@ class TensorboardFormatter:
         return list(map(_check_img, tagged_images))
 
     def _process_batch(self, name, batch):
-        if name == 'targets' and self.skip_last_target:
+        if name == "targets" and self.skip_last_target:
             batch = batch[:, :-1, ...]
 
-        tag_template = '{}/batch_{}/slice_{}'
+        tag_template = "{}/batch_{}/slice_{}"
 
         tagged_images = []
 
@@ -164,15 +173,17 @@ class TensorboardFormatter:
             # NCDHW
             slice_idx = batch.shape[2] // 2  # get the middle slice
             for batch_idx in range(batch.shape[0]):
-                if self.log_channelwise and name == 'predictions':
-                    tag_template = '{}/batch_{}/channel_{}/slice_{}'
+                if self.log_channelwise and name == "predictions":
+                    tag_template = "{}/batch_{}/channel_{}/slice_{}"
                     for channel_idx in range(batch.shape[1]):
-                        tag = tag_template.format(name, batch_idx, channel_idx, slice_idx)
+                        tag = tag_template.format(
+                            name, batch_idx, channel_idx, slice_idx
+                        )
                         img = batch[batch_idx, channel_idx, slice_idx, ...]
                         tagged_images.append((tag, self._normalize_img(img)))
                 else:
                     tag = tag_template.format(name, batch_idx, slice_idx)
-                    if name in ['predictions', 'targets']:
+                    if name in ["predictions", "targets"]:
                         # for single channel predictions, just log the image
                         if batch.shape[1] == 1:
                             img = batch[batch_idx, :, slice_idx, ...]
@@ -194,9 +205,11 @@ class TensorboardFormatter:
                             tagged_images.append((tag, self._normalize_img(img)))
                         else:
                             # log channelwise
-                            tag_template = '{}/batch_{}/channel_{}/slice_{}'
+                            tag_template = "{}/batch_{}/channel_{}/slice_{}"
                             for channel_idx in range(batch.shape[1]):
-                                tag = tag_template.format(name, batch_idx, channel_idx, slice_idx)
+                                tag = tag_template.format(
+                                    name, batch_idx, channel_idx, slice_idx
+                                )
                                 img = batch[batch_idx, channel_idx, slice_idx, ...]
                                 tagged_images.append((tag, self._normalize_img(img)))
 
@@ -232,10 +245,10 @@ def _find_masks(batch, min_size=10):
         coords = np.where(z_sum > min_size)[0]
         if len(coords) > 0:
             ind = coords[len(coords) // 2]
-            result.append(b[:, ind:ind + 1, ...])
+            result.append(b[:, ind : ind + 1, ...])
         else:
             ind = b.shape[1] // 2
-            result.append(b[:, ind:ind + 1, ...])
+            result.append(b[:, ind : ind + 1, ...])
 
     return np.stack(result, axis=0)
 
@@ -300,75 +313,111 @@ def convert_to_numpy(*inputs):
 
 
 def create_optimizer(optimizer_config, model):
-    optim_name = optimizer_config.get('name', 'Adam')
+    optim_name = optimizer_config.get("name", "Adam")
     # common optimizer settings
-    learning_rate = optimizer_config.get('learning_rate', 1e-3)
-    weight_decay = optimizer_config.get('weight_decay', 0)
+    learning_rate = optimizer_config.get("learning_rate", 1e-3)
+    weight_decay = optimizer_config.get("weight_decay", 0)
 
     # grab optimizer specific settings and init
     # optimizer
-    if optim_name == 'Adadelta':
-        rho = optimizer_config.get('rho', 0.9)
-        optimizer = optim.Adadelta(model.parameters(), lr=learning_rate, rho=rho,
-                                   weight_decay=weight_decay)
-    elif optim_name == 'Adagrad':
-        lr_decay = optimizer_config.get('lr_decay', 0)
-        optimizer = optim.Adagrad(model.parameters(), lr=learning_rate, lr_decay=lr_decay,
-                                  weight_decay=weight_decay)
-    elif optim_name == 'AdamW':
-        betas = tuple(optimizer_config.get('betas', (0.9, 0.999)))
-        optimizer = optim.AdamW(model.parameters(), lr=learning_rate, betas=betas,
-                                weight_decay=weight_decay)
-    elif optim_name == 'SparseAdam':
-        betas = tuple(optimizer_config.get('betas', (0.9, 0.999)))
+    if optim_name == "Adadelta":
+        rho = optimizer_config.get("rho", 0.9)
+        optimizer = optim.Adadelta(
+            model.parameters(), lr=learning_rate, rho=rho, weight_decay=weight_decay
+        )
+    elif optim_name == "Adagrad":
+        lr_decay = optimizer_config.get("lr_decay", 0)
+        optimizer = optim.Adagrad(
+            model.parameters(),
+            lr=learning_rate,
+            lr_decay=lr_decay,
+            weight_decay=weight_decay,
+        )
+    elif optim_name == "AdamW":
+        betas = tuple(optimizer_config.get("betas", (0.9, 0.999)))
+        optimizer = optim.AdamW(
+            model.parameters(), lr=learning_rate, betas=betas, weight_decay=weight_decay
+        )
+    elif optim_name == "SparseAdam":
+        betas = tuple(optimizer_config.get("betas", (0.9, 0.999)))
         optimizer = optim.SparseAdam(model.parameters(), lr=learning_rate, betas=betas)
-    elif optim_name == 'Adamax':
-        betas = tuple(optimizer_config.get('betas', (0.9, 0.999)))
-        optimizer = optim.Adamax(model.parameters(), lr=learning_rate, betas=betas,
-                                 weight_decay=weight_decay)
-    elif optim_name == 'ASGD':
-        lambd = optimizer_config.get('lambd', 0.0001)
-        alpha = optimizer_config.get('alpha', 0.75)
-        t0 = optimizer_config.get('t0', 1e6)
-        optimizer = optim.Adamax(model.parameters(), lr=learning_rate, lambd=lambd,
-                                 alpha=alpha, t0=t0, weight_decay=weight_decay)
-    elif optim_name == 'LBFGS':
-        max_iter = optimizer_config.get('max_iter', 20)
-        max_eval = optimizer_config.get('max_eval', None)
-        tolerance_grad = optimizer_config.get('tolerance_grad', 1e-7)
-        tolerance_change = optimizer_config.get('tolerance_change', 1e-9)
-        history_size = optimizer_config.get('history_size', 100)
-        optimizer = optim.LBFGS(model.parameters(), lr=learning_rate, max_iter=max_iter,
-                                max_eval=max_eval, tolerance_grad=tolerance_grad,
-                                tolerance_change=tolerance_change, history_size=history_size)
-    elif optim_name == 'NAdam':
-        betas = tuple(optimizer_config.get('betas', (0.9, 0.999)))
-        momentum_decay = optimizer_config.get('momentum_decay', 4e-3)
-        optimizer = optim.NAdam(model.parameters(), lr=learning_rate, betas=betas,
-                                momentum_decay=momentum_decay,
-                                weight_decay=weight_decay)
-    elif optim_name == 'RAdam':
-        betas = tuple(optimizer_config.get('betas', (0.9, 0.999)))
-        optimizer = optim.RAdam(model.parameters(), lr=learning_rate, betas=betas,
-                                weight_decay=weight_decay)
-    elif optim_name == 'RMSprop':
-        alpha = optimizer_config.get('alpha', 0.99)
-        optimizer = optim.RMSprop(model.parameters(), lr=learning_rate, alpha=alpha,
-                                  weight_decay=weight_decay)
-    elif optim_name == 'Rprop':
-        momentum = optimizer_config.get('momentum', 0)
-        optimizer = optim.RMSprop(model.parameters(), lr=learning_rate, weight_decay=weight_decay, momentum=momentum)
-    elif optim_name == 'SGD':
-        momentum = optimizer_config.get('momentum', 0)
-        dampening = optimizer_config.get('dampening', 0)
-        nesterov = optimizer_config.get('nesterov', False)
-        optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum,
-                              dampening=dampening, nesterov=nesterov,
-                              weight_decay=weight_decay)
+    elif optim_name == "Adamax":
+        betas = tuple(optimizer_config.get("betas", (0.9, 0.999)))
+        optimizer = optim.Adamax(
+            model.parameters(), lr=learning_rate, betas=betas, weight_decay=weight_decay
+        )
+    elif optim_name == "ASGD":
+        lambd = optimizer_config.get("lambd", 0.0001)
+        alpha = optimizer_config.get("alpha", 0.75)
+        t0 = optimizer_config.get("t0", 1e6)
+        optimizer = optim.Adamax(
+            model.parameters(),
+            lr=learning_rate,
+            lambd=lambd,
+            alpha=alpha,
+            t0=t0,
+            weight_decay=weight_decay,
+        )
+    elif optim_name == "LBFGS":
+        max_iter = optimizer_config.get("max_iter", 20)
+        max_eval = optimizer_config.get("max_eval", None)
+        tolerance_grad = optimizer_config.get("tolerance_grad", 1e-7)
+        tolerance_change = optimizer_config.get("tolerance_change", 1e-9)
+        history_size = optimizer_config.get("history_size", 100)
+        optimizer = optim.LBFGS(
+            model.parameters(),
+            lr=learning_rate,
+            max_iter=max_iter,
+            max_eval=max_eval,
+            tolerance_grad=tolerance_grad,
+            tolerance_change=tolerance_change,
+            history_size=history_size,
+        )
+    elif optim_name == "NAdam":
+        betas = tuple(optimizer_config.get("betas", (0.9, 0.999)))
+        momentum_decay = optimizer_config.get("momentum_decay", 4e-3)
+        optimizer = optim.NAdam(
+            model.parameters(),
+            lr=learning_rate,
+            betas=betas,
+            momentum_decay=momentum_decay,
+            weight_decay=weight_decay,
+        )
+    elif optim_name == "RAdam":
+        betas = tuple(optimizer_config.get("betas", (0.9, 0.999)))
+        optimizer = optim.RAdam(
+            model.parameters(), lr=learning_rate, betas=betas, weight_decay=weight_decay
+        )
+    elif optim_name == "RMSprop":
+        alpha = optimizer_config.get("alpha", 0.99)
+        optimizer = optim.RMSprop(
+            model.parameters(), lr=learning_rate, alpha=alpha, weight_decay=weight_decay
+        )
+    elif optim_name == "Rprop":
+        momentum = optimizer_config.get("momentum", 0)
+        optimizer = optim.RMSprop(
+            model.parameters(),
+            lr=learning_rate,
+            weight_decay=weight_decay,
+            momentum=momentum,
+        )
+    elif optim_name == "SGD":
+        momentum = optimizer_config.get("momentum", 0)
+        dampening = optimizer_config.get("dampening", 0)
+        nesterov = optimizer_config.get("nesterov", False)
+        optimizer = optim.SGD(
+            model.parameters(),
+            lr=learning_rate,
+            momentum=momentum,
+            dampening=dampening,
+            nesterov=nesterov,
+            weight_decay=weight_decay,
+        )
     else:  # Adam is default
-        betas = tuple(optimizer_config.get('betas', (0.9, 0.999)))
-        optimizer = optim.Adam(model.parameters(), lr=learning_rate, betas=betas,
-                               weight_decay=weight_decay)
+        betas = tuple(optimizer_config.get("betas", (0.9, 0.999)))
+        optimizer = optim.Adam(
+            model.parameters(), lr=learning_rate, betas=betas, weight_decay=weight_decay
+        )
 
     return optimizer
 
@@ -376,11 +425,11 @@ def create_optimizer(optimizer_config, model):
 def create_lr_scheduler(lr_config, optimizer):
     if lr_config is None:
         return None
-    class_name = lr_config.pop('name')
-    m = importlib.import_module('torch.optim.lr_scheduler')
+    class_name = lr_config.pop("name")
+    m = importlib.import_module("torch.optim.lr_scheduler")
     clazz = getattr(m, class_name)
     # add optimizer to the config
-    lr_config['optimizer'] = optimizer
+    lr_config["optimizer"] = optimizer
     return clazz(**lr_config)
 
 
@@ -390,4 +439,4 @@ def get_class(class_name, modules):
         clazz = getattr(m, class_name, None)
         if clazz is not None:
             return clazz
-    raise RuntimeError(f'Unsupported dataset class: {class_name}')
+    raise RuntimeError(f"Unsupported dataset class: {class_name}")

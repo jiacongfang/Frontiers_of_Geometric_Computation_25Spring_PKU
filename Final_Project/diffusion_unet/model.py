@@ -275,6 +275,7 @@ class SinusoidalPositionEmbeddings(nn.Module):
     """
     Sinusoidal position embeddings for time step embedding.
     """
+
     def __init__(self, dim):
         super().__init__()
         self.dim = dim
@@ -314,8 +315,8 @@ class DiffusionUNet3D(nn.Module):
         self.unet = ResidualUNet3D(
             in_channels=in_channels,
             out_channels=out_channels,
-            final_sigmoid=False,  
-            is_segmentation=False, 
+            final_sigmoid=False,
+            is_segmentation=False,
             f_maps=f_maps,
             layer_order=layer_order,
             num_groups=num_groups,
@@ -430,13 +431,11 @@ class DiffusionModel:
         x_t = sqrt_alphas_cumprod_t * z + sqrt_one_minus_alphas_cumprod_t * noise
         return x_t, noise
 
-
     def sample_timesteps(self, batch_size):
         """Sample random timesteps for a batch"""
         return torch.randint(
             0, self.timesteps, (batch_size,), device=self.device
         ).long()
-
 
     def training_loss(self, x_0):
         """

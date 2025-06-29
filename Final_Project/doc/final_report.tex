@@ -150,27 +150,51 @@
     {\kaishu 姓名:方嘉聪\ \  学号: 2200017849}            % Write down your name and ID here.
 \end{center}
 
-\section{整体介绍与结果}
+\section{Introduction}
 
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.8\textwidth]{imgs/table_chair.pdf}
-    \caption{Unconditional 3D generation results of table and chair. }
-    \label{fig:chairs_table_unconditional} 
-\end{figure}
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.8\textwidth]{imgs/other_and_fail.pdf}
-    \caption{Unconditional 3D generation results of sofa and rifle. The last two rows are failed cases of table and chair generation, there are some details missing especially in the legs of the table and chair. }
-    \label{fig:sofa_rifle_unconditional} 
-\end{figure}
+
 
 \section{Methods}
+
+\section{Training Details}
+
+\section{Results}
+
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=1.0\textwidth]{imgs/vqvae.pdf}
     \caption{The reconstruction results of VQ-VAE on the test set of ShapeNet. The first row is the original object, the second row is the reconstructed object.}
 \end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.85\textwidth]{imgs/table_chair.pdf}
+    \caption{Unconditional 3D generation results of table and chair. }
+    \label{fig:chairs_table_unconditional} 
+\end{figure}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{imgs/other_and_fail.pdf}
+    \caption{Unconditional 3D generation results of sofa and rifle. The last two rows are failed cases of table and chair generation, there are some details missing especially in the legs of the table and chair. }
+    \label{fig:sofa_rifle_unconditional} 
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imgs/result_text_1.pdf}
+    \caption{Conditional 3D generation results of table and chair with text prompts.}
+    \label{fig:conditional_text_1}
+\end{figure}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1.0\textwidth]{imgs/result_text_2.pdf}
+    \caption{More conditional 3D generation results of table and chair with text prompts.}
+    \label{fig:conditional_text_2}
+\end{figure}
+
+\section{Conclusion}
+
 
 \bibliographystyle{plain} 
 \bibliography{ref} 
